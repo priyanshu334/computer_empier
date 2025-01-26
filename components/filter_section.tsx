@@ -21,27 +21,28 @@ const FilterComponent = () => {
   ]);
 
   return (
-    <View className="bg-[#EAF7F0] p-4 rounded-md">
+    <View className="bg-white p-6 rounded-lg shadow-lg">
       {/* Title */}
-      <View className="flex flex-row items-center mb-4">
-        <AntDesign name="search1" size={20} color="#007ACC" />
-        <Text className="ml-2 text-lg font-semibold text-[#007ACC]">
+      <View className="flex flex-row items-center mb-6">
+        <AntDesign name="filter" size={24} color="#047857" />
+        <Text className="ml-3 text-2xl font-bold text-[#047857]">
           Filters
         </Text>
       </View>
 
       {/* Customer Name Input */}
-      <View className="mb-4">
+      <View className="mb-6">
+        <Text className="text-gray-700 mb-2 font-medium">Customer Name</Text>
         <TextInput
-          placeholder="Customer Name"
-          placeholderTextColor="#999999"
-          className="bg-white border border-gray-300 rounded-md h-10 px-3 flex flex-row items-center"
+          placeholder="Enter customer name"
+          placeholderTextColor="#9CA3AF"
+          className="bg-gray-100 border border-gray-300 rounded-lg h-12 px-4 text-base"
         />
       </View>
 
       {/* Service Center Dropdown */}
-      <View className="mb-4">
-        <Text className="text-gray-600 mb-2">Service Center</Text>
+      <View className="mb-6">
+        <Text className="text-gray-700 mb-2 font-medium">Service Center</Text>
         <DropDownPicker
           open={serviceCenterOpen}
           value={serviceCenter}
@@ -51,23 +52,25 @@ const FilterComponent = () => {
           setItems={setServiceCenterItems}
           placeholder="Select Service Center"
           style={{
-            backgroundColor: "#ffffff",
-            borderColor: "#D1D5DB",
+            backgroundColor: "#F3F4F6",
+            borderColor: "#E5E7EB",
             borderRadius: 8,
+            height: 48,
           }}
           dropDownContainerStyle={{
-            backgroundColor: "#ffffff",
-            borderColor: "#D1D5DB",
+            backgroundColor: "#FFFFFF",
+            borderColor: "#E5E7EB",
           }}
           textStyle={{
             fontSize: 14,
+            color: "#374151",
           }}
         />
       </View>
 
       {/* Service Provider Dropdown */}
-      <View className="mb-4">
-        <Text className="text-gray-600 mb-2">Service Provider</Text>
+      <View className="mb-6">
+        <Text className="text-gray-700 mb-2 font-medium">Service Provider</Text>
         <DropDownPicker
           open={serviceProviderOpen}
           value={serviceProvider}
@@ -77,25 +80,37 @@ const FilterComponent = () => {
           setItems={setServiceProviderItems}
           placeholder="Select Service Provider"
           style={{
-            backgroundColor: "#ffffff",
-            borderColor: "#D1D5DB",
+            backgroundColor: "#F3F4F6",
+            borderColor: "#E5E7EB",
             borderRadius: 8,
+            height: 48,
           }}
           dropDownContainerStyle={{
-            backgroundColor: "#ffffff",
-            borderColor: "#D1D5DB",
+            backgroundColor: "#FFFFFF",
+            borderColor: "#E5E7EB",
           }}
           textStyle={{
             fontSize: 14,
+            color: "#374151",
           }}
         />
       </View>
 
       {/* Repair Date */}
-      <View className="mb-4">
-        <TouchableOpacity className="flex flex-row items-center bg-white border border-gray-300 rounded-md h-10 px-3">
-          <AntDesign name="calendar" size={20} color="#999999" />
-          <Text className="ml-2 text-gray-500">Repair Date</Text>
+      <View className="mb-6">
+        <Text className="text-gray-700 mb-2 font-medium">Repair Date</Text>
+        <TouchableOpacity className="flex flex-row items-center bg-gray-100 border border-gray-300 rounded-lg h-12 px-4">
+          <AntDesign name="calendar" size={20} color="#9CA3AF" />
+          <Text className="ml-3 text-gray-500 text-base">Select Date</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Apply Filters Button */}
+      <View>
+        <TouchableOpacity className="bg-[#047857] py-3 rounded-lg">
+          <Text className="text-center text-white text-lg font-medium">
+            Apply Filters
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

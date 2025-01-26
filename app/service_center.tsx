@@ -3,32 +3,33 @@ import { View, Text, TextInput, TouchableOpacity, FlatList } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 
-export default function ServiceProviders() {
-  const [providers, setProviders] = useState([
-    { id: "1", name: "mmdmv", contact: "7020754395" },
+export default function ServiceCenter() {
+  const [centers, setCenters] = useState([
+    { id: "1", name: "mmbdm,bf", contact: "7020754395", address: "Sample Address" },
   ]);
-  const [providerName, setProviderName] = useState("");
+  const [centerName, setCenterName] = useState("");
   const [contactNumber, setContactNumber] = useState("");
-  const [description, setDescription] = useState("");
+  const [address, setAddress] = useState("");
 
-  const handleAddProvider = () => {
-    if (providerName && contactNumber) {
-      setProviders([
-        ...providers,
+  const handleAddCenter = () => {
+    if (centerName && contactNumber && address) {
+      setCenters([
+        ...centers,
         {
           id: Math.random().toString(),
-          name: providerName,
+          name: centerName,
           contact: contactNumber,
+          address,
         },
       ]);
-      setProviderName("");
+      setCenterName("");
       setContactNumber("");
-      setDescription("");
+      setAddress("");
     }
   };
 
-  const handleDeleteProvider = (id:any) => {
-    setProviders(providers.filter((provider) => provider.id !== id));
+  const handleDeleteCenter = (id: string) => {
+    setCenters(centers.filter((center) => center.id !== id));
   };
 
   return (
@@ -39,25 +40,25 @@ export default function ServiceProviders() {
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
         <Text className="text-white text-lg font-semibold ml-4">
-          Service Providers
+          Service Centers
         </Text>
       </View>
 
-      {/* Provider Details Section */}
+      {/* Service Center Details Section */}
       <View className="p-4 bg-white rounded-md m-4 shadow-md">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
-          Service Provider Details
+          Service Center Details
         </Text>
 
         {/* Input Fields */}
         <View className="space-y-4">
-          {/* Provider Name */}
+          {/* Service Center Name */}
           <View className="flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
-            <AntDesign name="user" size={20} color="gray" />
+            <AntDesign name="home" size={20} color="gray" />
             <TextInput
-              placeholder="Provider Name"
-              value={providerName}
-              onChangeText={setProviderName}
+              placeholder="Service Center Name"
+              value={centerName}
+              onChangeText={setCenterName}
               className="flex-1 ml-3 text-gray-800"
             />
           </View>
@@ -74,44 +75,45 @@ export default function ServiceProviders() {
             />
           </View>
 
-          {/* Description */}
+          {/* Address */}
           <View className="flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
-            <MaterialIcons name="description" size={20} color="gray" />
+            <MaterialIcons name="location-on" size={20} color="gray" />
             <TextInput
-              placeholder="Description"
-              value={description}
-              onChangeText={setDescription}
+              placeholder="Address"
+              value={address}
+              onChangeText={setAddress}
               className="flex-1 ml-3 text-gray-800"
             />
           </View>
         </View>
 
-        {/* Add Provider Button */}
+        {/* Add Service Center Button */}
         <TouchableOpacity
-          onPress={handleAddProvider}
+          onPress={handleAddCenter}
           className="bg-emerald-700 py-3 rounded-md mt-6"
         >
           <Text className="text-center text-white font-semibold text-lg">
-            Add Provider
+            Add Service Center
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* List of Service Providers */}
+      {/* List of Service Centers */}
       <View className="p-4">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
-          List of Service Providers
+          List of Service Centers
         </Text>
         <FlatList
-          data={providers}
+          data={centers}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View className="flex-row items-center justify-between bg-white p-4 rounded-md mb-2 shadow">
               <View>
                 <Text className="text-gray-800 font-semibold">{item.name}</Text>
                 <Text className="text-gray-500">{item.contact}</Text>
+                <Text className="text-gray-500">{item.address}</Text>
               </View>
-              <TouchableOpacity onPress={() => handleDeleteProvider(item.id)}>
+              <TouchableOpacity onPress={() => handleDeleteCenter(item.id)}>
                 <AntDesign name="delete" size={24} color="red" />
               </TouchableOpacity>
             </View>
