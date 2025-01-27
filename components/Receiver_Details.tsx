@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
 type ReceiverDetailsProps = {
@@ -19,52 +19,53 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
   };
 
   return (
-    <View className="bg-[#F0FDF4] p-4 rounded-md border border-gray-300">
+    <View className="bg-white p-4 rounded-lg shadow-md mx-4 my-4">
       {/* Title */}
-      <Text className="text-lg font-semibold text-blue-600">
-        Receiver Details
-      </Text>
+      <Text className="text-lg font-semibold text-gray-800 mb-4">Receiver Details</Text>
 
       {/* Name Input */}
-      <View className="flex flex-row justify-start items-center gap-2 px-2 bg-white border border-gray-300 rounded-md">
-        <AntDesign name="user" size={24} color="gray" />
-        <TextInput
-          placeholder="Enter Your Name"
-          className="text-gray-800"
-          onChangeText={onNameChange}
-          style={{ color: "#1f2937" }}
-        />
+      <View className="mb-4">
+        <Text className="text-sm font-medium mb-2">Receiver Name</Text>
+        <View className="flex-row items-center justify-between border border-gray-300 rounded-md p-2 bg-gray-50">
+          <AntDesign name="user" size={24} color="gray" />
+          <TextInput
+            placeholder="Enter Receiver Name"
+            className="ml-2 text-lg text-gray-800 flex-1"
+            onChangeText={onNameChange}
+          />
+        </View>
       </View>
 
       {/* Designation Selection */}
-      <Text className="text-base font-semibold text-gray-800">Designation</Text>
-      <View className="flex flex-row justify-between">
+      <Text className="text-sm font-medium mb-2">Designation</Text>
+      <View className="flex-row justify-between mb-4">
         <TouchableOpacity
           onPress={() => handleDesignationSelect("Owner")}
-          className={`flex-1 items-center justify-center rounded-md mr-2 ${
-            selectedDesignation === "Owner" ? "bg-blue-600" : "bg-gray-800"
+          className={`flex-1 items-center justify-center rounded-md py-3 ${
+            selectedDesignation === "Owner" ? "bg-blue-600" : "bg-gray-200"
           }`}
         >
           <Text
             className={`font-semibold ${
               selectedDesignation === "Owner"
-                ? "text-blue-900"
+                ? "text-white"
                 : "text-gray-800"
             }`}
           >
             Owner
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => handleDesignationSelect("Staff")}
-          className={`flex-1 items-center py-3 rounded-md ml-2 ${
-            selectedDesignation === "Staff" ? "bg-blue-600" : "bg-gray-800"
+          className={`flex-1 items-center justify-center rounded-md py-3 ${
+            selectedDesignation === "Staff" ? "bg-blue-600" : "bg-gray-200"
           }`}
         >
           <Text
             className={`font-semibold ${
               selectedDesignation === "Staff"
-                ? "text-blue-800"
+                ? "text-white"
                 : "text-gray-800"
             }`}
           >

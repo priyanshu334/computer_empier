@@ -1,23 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Modal,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type CustomerDetailsProps = {
   onSearchChange: (searchTerm: string) => void;
   onSelect: () => void;
-  onAdd: (customerDetails: {
-    name: string;
-    number: string;
-    address: string;
-  }) => void;
+  onAdd: (customerDetails: { name: string; number: string; address: string }) => void;
 };
 
 const CustomerDetails: React.FC<CustomerDetailsProps> = ({
@@ -92,48 +80,41 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
   };
 
   return (
-    <View className="flex-1 flex-col gap-4 bg-[#F0FDF4] p-4 rounded-md border border-gray-300 shadow">
-      {/* Title */}
-      <Text className="text-lg font-semibold text-blue-600">
-        Customer Details
-      </Text>
+    <View className="bg-white p-4 rounded-lg shadow-md">
+      <Text className="text-lg font-semibold text-blue-600 mb-4">Customer Details</Text>
 
-      {/* Search Input and Buttons */}
-      <View className="flex flex-col gap-4">
-        {/* Search Input */}
-        <View className="px-2 bg-white border border-gray-300 rounded-md">
-          <TextInput
-            onChangeText={onSearchChange}
-            placeholder="Enter Your Name"
-            className="text-gray-800"
-            style={{ color: "#1f2937" }}
-          />
-        </View>
-        <View className="flex flex-row justify-start items-center gap-4">
-          {/* Select Button */}
-          <TouchableOpacity
-            onPress={onSelect}
-            className="bg-emerald-700 flex justify-center items-center p-4 rounded-md"
-          >
-            <Text className=" text-white font-semibold ">Select</Text>
-          </TouchableOpacity>
+      {/* Search Input */}
+      <View className="mb-4">
+        <Text className="text-sm font-medium mb-2">Search Customer</Text>
+        <TextInput
+          className="border border-gray-300 rounded-md p-2"
+          placeholder="Enter Name"
+          onChangeText={onSearchChange}
+        />
+      </View>
 
-          {/* Add Button */}
-          <TouchableOpacity
-            onPress={() => setModalVisible(true)}
-            className="bg-emerald-700 rounded-md flex items-center justify-center  p-4"
-          >
-            <Text className="text-white font-semibold">Add</Text>
-          </TouchableOpacity>
+      {/* Action Buttons */}
+      <View className="flex-row gap-4 justify-start items-center mb-4">
+        <TouchableOpacity
+          onPress={onSelect}
+          className="bg-emerald-700 p-4 rounded-md flex justify-center items-center"
+        >
+          <Text className="text-white font-semibold">Select</Text>
+        </TouchableOpacity>
 
-          {/* Clear Button */}
-          <TouchableOpacity
-            onPress={clearAllCustomers}
-            className="bg-red-600 rounded-md flex items-center justify-center p-4"
-          >
-            <Text className="text-white font-semibold">Clear All</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          onPress={() => setModalVisible(true)}
+          className="bg-emerald-700 p-4 rounded-md flex justify-center items-center"
+        >
+          <Text className="text-white font-semibold">Add</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={clearAllCustomers}
+          className="bg-red-600 p-4 rounded-md flex justify-center items-center"
+        >
+          <Text className="text-white font-semibold">Clear All</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Modal for Adding Customer */}
@@ -145,34 +126,41 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text className="text-lg font-semibold text-blue-600 mb-4">
-              Add Customer
-            </Text>
+            <Text className="text-lg font-semibold text-blue-600 mb-4">Add Customer</Text>
 
             {/* Customer Name */}
-            <TextInput
-              placeholder="Customer Name"
-              className="bg-white border border-gray-300 rounded-md px-3 py-2 mb-3"
-              value={customerName}
-              onChangeText={setCustomerName}
-            />
+            <View className="mb-4">
+              <Text className="text-sm font-medium mb-2">Customer Name</Text>
+              <TextInput
+                className="border border-gray-300 rounded-md p-2"
+                placeholder="Enter Name"
+                value={customerName}
+                onChangeText={setCustomerName}
+              />
+            </View>
 
             {/* Customer Number */}
-            <TextInput
-              placeholder="Customer Number"
-              keyboardType="numeric"
-              className="bg-white border border-gray-300 rounded-md px-3 py-2 mb-3"
-              value={customerNumber}
-              onChangeText={setCustomerNumber}
-            />
+            <View className="mb-4">
+              <Text className="text-sm font-medium mb-2">Customer Number</Text>
+              <TextInput
+                className="border border-gray-300 rounded-md p-2"
+                placeholder="Enter Number"
+                keyboardType="numeric"
+                value={customerNumber}
+                onChangeText={setCustomerNumber}
+              />
+            </View>
 
             {/* Customer Address */}
-            <TextInput
-              placeholder="Address"
-              className="bg-white border border-gray-300 rounded-md px-3 py-2 mb-4"
-              value={customerAddress}
-              onChangeText={setCustomerAddress}
-            />
+            <View className="mb-4">
+              <Text className="text-sm font-medium mb-2">Customer Address</Text>
+              <TextInput
+                className="border border-gray-300 rounded-md p-2"
+                placeholder="Enter Address"
+                value={customerAddress}
+                onChangeText={setCustomerAddress}
+              />
+            </View>
 
             {/* Action Buttons */}
             <View className="flex-row justify-end space-x-2">

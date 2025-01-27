@@ -23,6 +23,7 @@ export default function ServiceProviders() {
   const [providerName, setProviderName] = useState<string>("");
   const [contactNumber, setContactNumber] = useState<string>("");
   const [description, setDescription] = useState<string>("");
+  const [editingProvider, setEditingProvider] = useState<ServiceProvider | null>(null);
 
   const PROVIDERS_KEY = "@service_providers";
 
@@ -55,17 +56,29 @@ export default function ServiceProviders() {
     saveProviders();
   }, [providers]);
 
-  // Function to add a new provider
-  const handleAddProvider = () => {
+  // Function to add a new provider or save edits
+  const handleAddOrEditProvider = () => {
     if (providerName && contactNumber) {
       const newProvider: ServiceProvider = {
-        id: Math.random().toString(),
+        id: editingProvider ? editingProvider.id : Math.random().toString(),
         name: providerName,
         contact: contactNumber,
         description,
       };
 
-      setProviders([...providers, newProvider]);
+      if (editingProvider) {
+        // Update existing provider
+        const updatedProviders = providers.map((provider) =>
+          provider.id === editingProvider.id ? newProvider : provider
+        );
+        setProviders(updatedProviders);
+        setEditingProvider(null); // Reset the editing state
+      } else {
+        // Add new provider
+        setProviders([...providers, newProvider]);
+      }
+
+      // Clear form
       setProviderName("");
       setContactNumber("");
       setDescription("");
@@ -75,6 +88,14 @@ export default function ServiceProviders() {
   // Function to delete a provider
   const handleDeleteProvider = (id: string) => {
     setProviders(providers.filter((provider) => provider.id !== id));
+  };
+
+  // Function to start editing a provider
+  const handleEditProvider = (provider: ServiceProvider) => {
+    setProviderName(provider.name);
+    setContactNumber(provider.contact);
+    setDescription(provider.description || "");
+    setEditingProvider(provider);
   };
 
   return (
@@ -92,7 +113,7 @@ export default function ServiceProviders() {
       {/* Provider Details Section */}
       <View className="p-4 bg-white rounded-md m-4 shadow-md">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
-          New Service Provider
+          {editingProvider ? "Edit Service Provider" : "New Service Provider"}
         </Text>
 
         {/* Input Fields */}
@@ -132,13 +153,13 @@ export default function ServiceProviders() {
           </View>
         </View>
 
-        {/* Add Provider Button */}
+        {/* Add or Save Provider Button */}
         <TouchableOpacity
-          onPress={handleAddProvider}
+          onPress={handleAddOrEditProvider}
           className="bg-emerald-700 py-3 rounded-md mt-6"
         >
           <Text className="text-center text-white font-semibold text-lg">
-            Add Provider
+            {editingProvider ? "Save Changes" : "Add Provider"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -160,9 +181,14 @@ export default function ServiceProviders() {
                   <Text className="text-gray-500">{item.description}</Text>
                 )}
               </View>
-              <TouchableOpacity onPress={() => handleDeleteProvider(item.id)}>
-                <AntDesign name="delete" size={24} color="red" />
-              </TouchableOpacity>
+              <View className="flex-row items-center">
+                <TouchableOpacity onPress={() => handleEditProvider(item)} className="mr-4">
+                  <AntDesign name="edit" size={24} color="blue" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteProvider(item.id)}>
+                  <AntDesign name="delete" size={24} color="red" />
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         />

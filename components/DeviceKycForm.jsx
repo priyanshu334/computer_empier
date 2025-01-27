@@ -10,34 +10,34 @@ const DeviceKYCForm = () => {
   const [isDeviceOnWarranty, setDeviceOnWarranty] = useState(false);
 
   return (
-    <View className="flex-1 bg-gray-100 p-4 mb-36">
+    <View className="flex-1 bg-gray-100 p-4">
       {/* Header */}
-      <Text className="text-xl font-bold text-blue-600 mb-4">Device KYC Form</Text>
+      <Text className="text-lg font-bold text-blue-600 mb-4">Device KYC Form</Text>
 
       {/* Buttons Section */}
-      <TouchableOpacity className="flex flex-row items-center bg-green p-3 rounded-xl mb-4">
+      <TouchableOpacity className="flex flex-row items-center bg-green-500 p-3 rounded-md mb-4 shadow-md">
         <FontAwesome name="info-circle" size={20} color="white" />
         <Text className="text-white ml-2">Model Details</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="flex flex-row items-center bg-green-500 p-3 rounded-xl mb-4">
+      <TouchableOpacity className="flex flex-row items-center bg-green-500 p-3 rounded-md mb-4 shadow-md">
         <MaterialIcons name="lock" size={20} color="white" />
         <Text className="text-white ml-2">Set Lock Code</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="flex flex-row items-center bg-green-500 p-3 rounded-xl mb-4">
+      <TouchableOpacity className="flex flex-row items-center bg-green-500 p-3 rounded-md mb-4 shadow-md">
         <MaterialIcons name="pattern" size={20} color="white" />
         <Text className="text-white ml-2">Set Pattern Lock Code</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="flex flex-row items-center bg-green-500 p-3 rounded-xl mb-4">
+      <TouchableOpacity className="flex flex-row items-center bg-green-500 p-3 rounded-md mb-4 shadow-md">
         <AntDesign name="scan1" size={20} color="white" />
         <Text className="text-white ml-2">Open Barcode Scanner</Text>
       </TouchableOpacity>
 
       {/* Accessories List Section */}
       <Text className="text-lg font-bold text-blue-600 mb-2">Accessories List</Text>
-      <View className="space-y-4">
+      <View className="space-y-4 mb-4">
         <BouncyCheckbox
           size={25}
           fillColor="#34D399"
@@ -71,17 +71,17 @@ const DeviceKYCForm = () => {
       </View>
 
       {/* Additional Options Section */}
-      <TouchableOpacity className="flex flex-row items-center border border-gray-300 p-3 rounded-xl mt-4">
+      <TouchableOpacity className="flex flex-row items-center border border-gray-300 p-3 rounded-md mb-4">
         <AntDesign name="pluscircleo" size={20} color="#6B7280" />
         <Text className="text-gray-600 ml-2">Other Accessories</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity className="flex flex-row items-center border border-gray-300 p-3 rounded-xl mt-4">
+      <TouchableOpacity className="flex flex-row items-center border border-gray-300 p-3 rounded-md mb-4">
         <FontAwesome name="info-circle" size={20} color="#6B7280" />
         <Text className="text-gray-600 ml-2">Additional Details</Text>
       </TouchableOpacity>
 
-      <View className="flex flex-row items-center mt-4">
+      <View className="flex flex-row items-center mb-4">
         <BouncyCheckbox
           size={25}
           fillColor="#34D399"

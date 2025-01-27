@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons'; // For calendar and clock icons
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 const EstimateDetails = () => {
-  // Define state types
   const [repairCost, setRepairCost] = useState<string>('');
   const [advancePaid, setAdvancePaid] = useState<string>('');
   const [pickupDate, setPickupDate] = useState<Date | null>(null); // Use Date or null
@@ -12,14 +11,12 @@ const EstimateDetails = () => {
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
 
-  // Date change handler
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     const currentDate = selectedDate || pickupDate;
     setShowDatePicker(Platform.OS === 'ios');
     setPickupDate(currentDate);
   };
 
-  // Time change handler
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
     const currentTime = selectedTime || pickupTime;
     setShowTimePicker(Platform.OS === 'ios');
@@ -27,16 +24,15 @@ const EstimateDetails = () => {
   };
 
   return (
-    <View className="bg-white p-6 rounded-lg shadow-lg mx-4 my-4">
-      {/* Title */}
-      <Text className="text-2xl font-semibold text-gray-800 mb-6">Estimate Details</Text>
+    <View className="bg-white p-4 rounded-lg shadow-md">
+      <Text className="text-lg font-bold mb-4">Estimate Details</Text>
 
       {/* Repair Cost Input */}
-      <View className="flex-row items-center mb-4">
-        <Text className="text-xl font-medium text-gray-600 mr-2">₹</Text>
+      <View className="mb-4">
+        <Text className="text-sm font-medium mb-2">Repair Cost</Text>
         <TextInput
-          className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500"
-          placeholder="Repair Cost"
+          className="border border-gray-300 rounded-md p-2"
+          placeholder="Enter Repair Cost"
           value={repairCost}
           onChangeText={setRepairCost}
           keyboardType="numeric"
@@ -44,11 +40,11 @@ const EstimateDetails = () => {
       </View>
 
       {/* Advance Paid Input */}
-      <View className="flex-row items-center mb-6">
-        <Text className="text-xl font-medium text-gray-600 mr-2">₹</Text>
+      <View className="mb-4">
+        <Text className="text-sm font-medium mb-2">Advance Paid</Text>
         <TextInput
-          className="flex-1 border border-gray-300 rounded-lg px-4 py-3 text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-blue-500"
-          placeholder="Advance Paid"
+          className="border border-gray-300 rounded-md p-2"
+          placeholder="Enter Advance Paid"
           value={advancePaid}
           onChangeText={setAdvancePaid}
           keyboardType="numeric"
@@ -57,9 +53,9 @@ const EstimateDetails = () => {
 
       {/* Pickup Date */}
       <View className="mb-4">
-        <Text className="text-sm font-medium text-gray-700 mb-2">Pickup Date</Text>
+        <Text className="text-sm font-medium mb-2">Pickup Date</Text>
         <TouchableOpacity
-          className="flex-row items-center justify-between border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
+          className="flex-row items-center justify-between border border-gray-300 rounded-md p-2 bg-gray-50"
           onPress={() => setShowDatePicker(true)}
         >
           <Text className="text-lg text-gray-800">{pickupDate ? pickupDate.toLocaleDateString() : 'Select Date'}</Text>
@@ -76,10 +72,10 @@ const EstimateDetails = () => {
       </View>
 
       {/* Pickup Time */}
-      <View className="mb-6">
-        <Text className="text-sm font-medium text-gray-700 mb-2">Pickup Time</Text>
+      <View className="mb-4">
+        <Text className="text-sm font-medium mb-2">Pickup Time</Text>
         <TouchableOpacity
-          className="flex-row items-center justify-between border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
+          className="flex-row items-center justify-between border border-gray-300 rounded-md p-2 bg-gray-50"
           onPress={() => setShowTimePicker(true)}
         >
           <Text className="text-lg text-gray-800">{pickupTime ? pickupTime.toLocaleTimeString() : 'Select Time'}</Text>
@@ -96,7 +92,7 @@ const EstimateDetails = () => {
       </View>
 
       {/* Confirm Button */}
-      <TouchableOpacity className="bg-green-500 text-white rounded-md px-6 py-3 mt-4 shadow-lg">
+      <TouchableOpacity className="bg-green-500 text-white rounded-md px-6 py-3 mt-4 shadow-md">
         <Text className="text-lg font-semibold">Confirm</Text>
       </TouchableOpacity>
     </View>

@@ -17,28 +17,30 @@ export default function Index() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}
-      <View className="flex flex-row justify-center items-center bg-emerald-900 p-4">
-        <TouchableOpacity
-          onPress={() => router.back()} // Navigate back
-          className="absolute left-4"
-        >
+      <View className="flex flex-row items-center bg-emerald-900 p-4">
+        {/* Back Button */}
+        <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text className="text-white font-semibold text-lg flex-1 text-center">
+
+        {/* Centered Title */}
+        <Text className="absolute left-0 right-0 text-center text-white text-lg font-bold">
           All Record
         </Text>
-        <View className="flex flex-row gap-4">
+
+        {/* Right-side Buttons */}
+        <View className="flex flex-row gap-4 ml-auto">
           {/* Dropdown Button */}
-          <TouchableOpacity className="bg-white p-2 rounded-md">
-            <AntDesign name="arrowdown" size={24} color="#000" />
+          <TouchableOpacity>
+            <AntDesign name="arrowdown" size={22} color="#fff" />
           </TouchableOpacity>
+
           {/* Sync Button */}
-          <TouchableOpacity className="bg-white p-2 rounded-md">
-            <AntDesign name="sync" size={24} color="#000" />
+          <TouchableOpacity>
+            <AntDesign name="sync" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
-
       {/* Filter Section */}
       <View className="flex-1 p-4">
         <FilterComponent />

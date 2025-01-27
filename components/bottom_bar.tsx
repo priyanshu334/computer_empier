@@ -17,49 +17,49 @@ const BottomBar: React.FC<BottomBarProps> = ({
   onPrintPress,
 }) => {
   return (
-    <View className="flex flex-row justify-around items-center bg-white shadow-md rounded-t-2xl p-4">
+    <View className="flex flex-row justify-around items-center bg-white shadow-lg rounded-t-2xl p-4">
       {/* Phone Button */}
       <TouchableOpacity
         onPress={onPhonePress}
-        className="flex items-center"
+        className="flex items-center hover:opacity-80"
       >
-        <View className="bg-emerald-700 p-3 rounded-full">
-          <AntDesign name="phone" size={24} color="white" />
+        <View className="bg-emerald-700 p-4 rounded-full shadow-md">
+          <AntDesign name="phone" size={28} color="white" />
         </View>
-        <Text className="text-emerald-700 font-semibold mt-1">Phone</Text>
+        <Text className="text-emerald-700 font-semibold mt-2 text-lg">Phone</Text>
       </TouchableOpacity>
 
       {/* Message Button */}
       <TouchableOpacity
         onPress={onMessagePress}
-        className="flex items-center"
+        className="flex items-center hover:opacity-80"
       >
-        <View className="p-3 rounded-full">
-          <MaterialIcons name="message" size={24} color="teal" />
+        <View className="bg-teal-500 p-4 rounded-full shadow-md">
+          <MaterialIcons name="message" size={28} color="white" />
         </View>
-        <Text className="text-teal-700 font-semibold mt-1">Message</Text>
+        <Text className="text-teal-700 font-semibold mt-2 text-lg">Message</Text>
       </TouchableOpacity>
 
       {/* WhatsApp Button */}
       <TouchableOpacity
         onPress={onWhatsAppPress}
-        className="flex items-center"
+        className="flex items-center hover:opacity-80"
       >
-        <View className="p-3 rounded-full">
-          <FontAwesome name="whatsapp" size={24} color="teal" />
+        <View className="bg-teal-500 p-4 rounded-full shadow-md">
+          <FontAwesome name="whatsapp" size={28} color="white" />
         </View>
-        <Text className="text-teal-700 font-semibold mt-1">WhatsApp</Text>
+        <Text className="text-teal-700 font-semibold mt-2 text-lg">WhatsApp</Text>
       </TouchableOpacity>
 
       {/* Print Button */}
       <TouchableOpacity
         onPress={onPrintPress}
-        className="flex items-center"
+        className="flex items-center hover:opacity-80"
       >
-        <View className="p-3 rounded-full">
-          <MaterialIcons name="print" size={24} color="teal" />
+        <View className="bg-teal-500 p-4 rounded-full shadow-md">
+          <MaterialIcons name="print" size={28} color="white" />
         </View>
-        <Text className="text-teal-700 font-semibold mt-1">Print</Text>
+        <Text className="text-teal-700 font-semibold mt-2 text-lg">Print</Text>
       </TouchableOpacity>
     </View>
   );
