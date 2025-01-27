@@ -1,11 +1,22 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 
 export default function ServiceCenter() {
   const [centers, setCenters] = useState([
-    { id: "1", name: "mmbdm,bf", contact: "7020754395", address: "Sample Address" },
+    {
+      id: "1",
+      name: "mmbdm,bf",
+      contact: "7020754395",
+      address: "Sample Address",
+    },
   ]);
   const [centerName, setCenterName] = useState("");
   const [contactNumber, setContactNumber] = useState("");
@@ -35,25 +46,25 @@ export default function ServiceCenter() {
   return (
     <SafeAreaView className="flex-1 bg-[#F0FDF4]">
       {/* Header */}
-      <View className="flex-row items-center bg-emerald-900 p-4">
+      <View className="flex flex-row items-center justify-start bg-emerald-900 p-4 border-b-[1px]">
         <TouchableOpacity>
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text className="text-white text-lg font-semibold ml-4">
+        <Text className="text-white text-lg font-bold absolute left-0 right-0 text-center">
           Service Centers
         </Text>
       </View>
 
       {/* Service Center Details Section */}
-      <View className="p-4 bg-white rounded-md m-4 shadow-md">
-        <Text className="text-lg font-semibold text-blue-600 mb-4">
-          Service Center Details
+      <View className="flex flex-col gap-4 p-4 bg-white rounded-md m-4 shadow-md">
+        <Text className="text-lg font-semibold text-blue-600">
+          New Service Center
         </Text>
 
         {/* Input Fields */}
-        <View className="space-y-4">
+        <View className="flex flex-col gap-2">
           {/* Service Center Name */}
-          <View className="flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
+          <View className="flex flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
             <AntDesign name="home" size={20} color="gray" />
             <TextInput
               placeholder="Service Center Name"
@@ -90,7 +101,7 @@ export default function ServiceCenter() {
         {/* Add Service Center Button */}
         <TouchableOpacity
           onPress={handleAddCenter}
-          className="bg-emerald-700 py-3 rounded-md mt-6"
+          className="bg-emerald-700 py-3 rounded-md my-4"
         >
           <Text className="text-center text-white font-semibold text-lg">
             Add Service Center

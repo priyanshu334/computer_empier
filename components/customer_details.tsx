@@ -41,40 +41,41 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
   };
 
   return (
-    <View className="bg-[#F0FDF4] p-4 rounded-md shadow">
+    <View className="flex-1 flex-col gap-4 bg-[#F0FDF4] p-4 rounded-md border border-gray-300 shadow">
       {/* Title */}
-      <Text className="text-lg font-semibold text-blue-600 mb-4">
+      <Text className="text-lg font-semibold text-blue-600">
         Customer Details
       </Text>
 
       {/* Search Input and Buttons */}
-      <View className="flex-row items-center space-x-2">
+      <View className="flex flex-col gap-4">
         {/* Search Input */}
-        <View className="flex-1 bg-white border border-gray-300 rounded-md px-3 py-2">
+        <View className="px-2 bg-white border border-gray-300 rounded-md">
           <TextInput
-            placeholder="Search and select from customers..."
-            className="text-gray-800"
             onChangeText={onSearchChange}
+            placeholder="Enter Your Name"
+            className="text-gray-800"
+            style={{ color: "#1f2937" }}
           />
         </View>
+        <View className="flex flex-row justify-start items-center gap-4">
+          {/* Select Button */}
+          <TouchableOpacity
+            onPress={onSelect}
+            className="bg-emerald-700 flex justify-center items-center p-4 rounded-md"
+          >
+            <Text className=" text-white font-semibold ">Select</Text>
+          </TouchableOpacity>
 
-        {/* Select Button */}
-        <TouchableOpacity
-          onPress={onSelect}
-          className="bg-pink-500 px-4 py-2 rounded-md"
-        >
-          <Text className="text-white font-semibold">Select</Text>
-        </TouchableOpacity>
-
-        {/* Add Button */}
-        <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          className="bg-green-500 px-4 py-2 rounded-md"
-        >
-          <Text className="text-white font-semibold">Add</Text>
-        </TouchableOpacity>
+          {/* Add Button */}
+          <TouchableOpacity
+            onPress={() => setModalVisible(true)}
+            className="bg-emerald-700 rounded-md flex items-center justify-center  p-4"
+          >
+            <Text className="text-white font-semibold">Add</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
       {/* Modal for Adding Customer */}
       <Modal
         visible={isModalVisible}
