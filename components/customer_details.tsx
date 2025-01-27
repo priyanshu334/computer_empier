@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Alert, FlatList } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type CustomerDetailsProps = {
   onSearchChange: (searchTerm: string) => void;
-  onSelect: () => void;
   onAdd: (customerDetails: { name: string; number: string; address: string }) => void;
 };
 
-const CustomerDetails: React.FC<CustomerDetailsProps> = ({
-  onSearchChange,
-  onSelect,
-  onAdd,
-}) => {
-  const [isModalVisible, setModalVisible] = useState(false);
+const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd }) => {
+  const [isAddModalVisible, setAddModalVisible] = useState(false);
+  const [isSelectModalVisible, setSelectModalVisible] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerNumber, setCustomerNumber] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [storedCustomers, setStoredCustomers] = useState<
     { name: string; number: string; address: string }[]
   >([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    { name: string; number: string; address: string } | null
+  >(null);
 
   // Load customers from AsyncStorage on component mount
   useEffect(() => {
@@ -61,27 +60,38 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 
     const updatedCustomers = [...storedCustomers, newCustomer];
     saveCustomers(updatedCustomers);
-    setModalVisible(false);
+
+    // Clear the modal fields
+    setAddModalVisible(false);
     setCustomerName("");
     setCustomerNumber("");
     setCustomerAddress("");
+
     onAdd(newCustomer); // Callback to parent component
+    Alert.alert("Success", "Customer added successfully!");
   };
 
-  // Clear all stored customers
-  const clearAllCustomers = async () => {
-    try {
-      await AsyncStorage.removeItem("customers");
-      setStoredCustomers([]);
-      Alert.alert("Success", "All customers have been cleared!");
-    } catch (error) {
-      console.error("Failed to clear customers:", error);
-    }
+  // Handle customer selection
+  const handleSelectCustomer = (customer: { name: string; number: string; address: string }) => {
+    setSelectedCustomer(customer);
+    setSelectModalVisible(false);
   };
 
   return (
-    <View className="bg-white p-4 rounded-lg shadow-md">
+    <View className="bg-white p-4 rounded-lg shadow-md my-4">
       <Text className="text-lg font-semibold text-blue-600 mb-4">Customer Details</Text>
+
+      {/* Selected Customer */}
+      {selectedCustomer && (
+        <View className="mb-4">
+          <Text className="text-sm font-medium mb-2">Selected Customer</Text>
+          <View className="border border-gray-300 rounded-md p-2">
+            <Text className="text-base font-medium">{selectedCustomer.name}</Text>
+            <Text className="text-sm text-gray-600">Number: {selectedCustomer.number}</Text>
+            <Text className="text-sm text-gray-600">Address: {selectedCustomer.address}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Search Input */}
       <View className="mb-4">
@@ -96,33 +106,26 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
       {/* Action Buttons */}
       <View className="flex-row gap-4 justify-start items-center mb-4">
         <TouchableOpacity
-          onPress={onSelect}
+          onPress={() => setSelectModalVisible(true)}
           className="bg-emerald-700 p-4 rounded-md flex justify-center items-center"
         >
           <Text className="text-white font-semibold">Select</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => setModalVisible(true)}
+          onPress={() => setAddModalVisible(true)}
           className="bg-emerald-700 p-4 rounded-md flex justify-center items-center"
         >
           <Text className="text-white font-semibold">Add</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={clearAllCustomers}
-          className="bg-red-600 p-4 rounded-md flex justify-center items-center"
-        >
-          <Text className="text-white font-semibold">Clear All</Text>
         </TouchableOpacity>
       </View>
 
       {/* Modal for Adding Customer */}
       <Modal
-        visible={isModalVisible}
+        visible={isAddModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={() => setAddModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -163,21 +166,61 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
             </View>
 
             {/* Action Buttons */}
-            <View className="flex-row justify-end space-x-2">
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                className="bg-gray-300 px-4 py-2 rounded-md"
-              >
-                <Text className="text-gray-800 font-semibold">Cancel</Text>
-              </TouchableOpacity>
-
+            <View className="flex-row justify-between space-x-2">
               <TouchableOpacity
                 onPress={handleAddCustomer}
                 className="bg-green-500 px-4 py-2 rounded-md"
               >
-                <Text className="text-white font-semibold">Add</Text>
+                <Text className="text-white font-semibold">Add Customer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setAddModalVisible(false)}
+                className="bg-gray-300 px-4 py-2 rounded-md"
+              >
+                <Text className="text-gray-800 font-semibold">Cancel</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal for Selecting Customer */}
+      <Modal
+        visible={isSelectModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSelectModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text className="text-lg font-semibold text-blue-600 mb-4">Select Customer</Text>
+
+            {/* Customer List */}
+            <FlatList
+              data={storedCustomers}
+              keyExtractor={(item, index) => `${item.name}-${index}`}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => handleSelectCustomer(item)}
+                  className="border-b border-gray-200 py-2"
+                >
+                  <Text className="text-base font-medium">{item.name}</Text>
+                  <Text className="text-sm text-gray-600">Number: {item.number}</Text>
+                  <Text className="text-sm text-gray-600">Address: {item.address}</Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <Text className="text-gray-600 text-center py-4">No customers available.</Text>
+              }
+            />
+
+            {/* Close Button */}
+            <TouchableOpacity
+              onPress={() => setSelectModalVisible(false)}
+              className="bg-gray-300 px-4 py-2 rounded-md mt-4"
+            >
+              <Text className="text-gray-800 font-semibold text-center">Close</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -205,3 +248,4 @@ const styles = StyleSheet.create({
 });
 
 export default CustomerDetails;
+  

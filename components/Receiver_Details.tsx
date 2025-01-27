@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
 type ReceiverDetailsProps = {
@@ -19,38 +19,38 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
   };
 
   return (
-    <View className="bg-white p-4 rounded-lg shadow-md mx-4 my-4">
+    <View style={styles.container}>
       {/* Title */}
-      <Text className="text-lg font-semibold text-gray-800 mb-4">Receiver Details</Text>
+      <Text style={styles.title}>Receiver Details</Text>
 
       {/* Name Input */}
-      <View className="mb-4">
-        <Text className="text-sm font-medium mb-2">Receiver Name</Text>
-        <View className="flex-row items-center justify-between border border-gray-300 rounded-md p-2 bg-gray-50">
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Receiver Name</Text>
+        <View style={styles.inputWrapper}>
           <AntDesign name="user" size={24} color="gray" />
           <TextInput
             placeholder="Enter Receiver Name"
-            className="ml-2 text-lg text-gray-800 flex-1"
+            style={styles.input}
             onChangeText={onNameChange}
           />
         </View>
       </View>
 
       {/* Designation Selection */}
-      <Text className="text-sm font-medium mb-2">Designation</Text>
-      <View className="flex-row justify-between mb-4">
+      <Text style={styles.label}>Designation</Text>
+      <View style={styles.designationContainer}>
         <TouchableOpacity
           onPress={() => handleDesignationSelect("Owner")}
-          className={`flex-1 items-center justify-center rounded-md py-3 ${
-            selectedDesignation === "Owner" ? "bg-blue-600" : "bg-gray-200"
-          }`}
+          style={[
+            styles.designationButton,
+            selectedDesignation === "Owner" ? styles.selectedButton : styles.unselectedButton,
+          ]}
         >
           <Text
-            className={`font-semibold ${
-              selectedDesignation === "Owner"
-                ? "text-white"
-                : "text-gray-800"
-            }`}
+            style={[
+              styles.designationText,
+              selectedDesignation === "Owner" ? styles.selectedText : styles.unselectedText,
+            ]}
           >
             Owner
           </Text>
@@ -58,16 +58,16 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
 
         <TouchableOpacity
           onPress={() => handleDesignationSelect("Staff")}
-          className={`flex-1 items-center justify-center rounded-md py-3 ${
-            selectedDesignation === "Staff" ? "bg-blue-600" : "bg-gray-200"
-          }`}
+          style={[
+            styles.designationButton,
+            selectedDesignation === "Staff" ? styles.selectedButton : styles.unselectedButton,
+          ]}
         >
           <Text
-            className={`font-semibold ${
-              selectedDesignation === "Staff"
-                ? "text-white"
-                : "text-gray-800"
-            }`}
+            style={[
+              styles.designationText,
+              selectedDesignation === "Staff" ? styles.selectedText : styles.unselectedText,
+            ]}
           >
             Staff
           </Text>
@@ -76,5 +76,78 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginHorizontal: 16,
+    marginVertical: 16,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 16,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#666",
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    backgroundColor: "#f9f9f9",
+  },
+  input: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1,
+    marginLeft: 8,
+  },
+  designationContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  designationButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    paddingVertical: 12,
+    marginHorizontal: 4,
+  },
+  selectedButton: {
+    backgroundColor: "#007BFF",
+  },
+  unselectedButton: {
+    backgroundColor: "#E0E0E0",
+  },
+  designationText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  selectedText: {
+    color: "white",
+  },
+  unselectedText: {
+    color: "#333",
+  },
+});
 
 export default ReceiverDetails;

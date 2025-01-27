@@ -42,7 +42,7 @@ export default function Index() {
         </View>
       </View>
       {/* Filter Section */}
-      <View className="flex-1 p-4">
+      <View className="flex-1">
         <FilterComponent />
       </View>
 

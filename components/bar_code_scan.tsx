@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
-import { BarCodeScanner } from "expo-barcode-scanner";
+import { Camera, CameraType, BarCodeScanningResult } from "expo-camera";
 import { useNavigation } from "expo-router";
-import tailwind from "tailwind-rn"; // Using Tailwind CSS for styling
 
 const BarcodeScanner: React.FC = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -12,39 +11,45 @@ const BarcodeScanner: React.FC = () => {
   // Request permission for camera access
   useEffect(() => {
     (async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     })();
   }, []);
 
   // Handle the scanned barcode
-  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+  const handleBarCodeScanned = ({ type, data }: BarCodeScanningResult) => {
     setScanned(true);
     Alert.alert(`Bar code with type ${type} and data ${data} has been scanned!`);
-    // Redirect to a different screen (optional)
-    navigation.navigate("./some-other-screen", { barcodeData: data });
+    // Optionally navigate to another screen or process the data
   };
 
   if (hasPermission === null) {
-    return <Text style={tailwind("text-center mt-4 text-lg")}>Requesting camera permissions...</Text>;
+    return <Text className="text-center mt-4 text-lg">Requesting camera permissions...</Text>;
   }
 
   if (hasPermission === false) {
-    return <Text style={tailwind("text-center mt-4 text-lg")}>No access to camera</Text>;
+    return <Text className="text-center mt-4 text-lg">No access to camera</Text>;
   }
 
   return (
-    <View style={tailwind("flex-1 justify-center items-center bg-black")}>
-      <BarCodeScanner
+    <View className="flex-1 justify-center items-center bg-black">
+      <Camera
+        style={{ flex: 1, width: "100%" }}
+        type={CameraType.back}
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        style={tailwind("w-full h-full")}
+        barCodeScannerSettings={{
+          barCodeTypes: [
+            Camera.Constants.BarCodeType.qr, // Add the barcode types you want to scan
+            Camera.Constants.BarCodeType.code128,
+          ],
+        }}
       />
       {scanned && (
         <TouchableOpacity
-          style={tailwind("absolute bottom-10 bg-white p-3 rounded-full")}
+          className="absolute bottom-10 bg-white p-3 rounded-full"
           onPress={() => setScanned(false)}
         >
-          <Text style={tailwind("text-black font-bold")}>Tap to Scan Again</Text>
+          <Text className="text-black font-bold">Tap to Scan Again</Text>
         </TouchableOpacity>
       )}
     </View>

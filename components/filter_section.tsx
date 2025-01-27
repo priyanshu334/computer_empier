@@ -21,7 +21,7 @@ const FilterComponent = () => {
   ]);
 
   return (
-    <View className="flex flex-col gap-4 p-4 border bg-[#F0FDF4]">
+    <View className="flex flex-col gap-4 p-4 border border-gray-300 rounded-md bg-[#F0FDF4]">
       {/* Title */}
       <View className="flex flex-row gap-2 items-center">
         <AntDesign name="filter" size={24} color="#047857" />

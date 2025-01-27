@@ -46,9 +46,7 @@ const All_orders = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-100">
-      <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
-
-      <View className="flex flex-row items-center justify-start bg-emerald-900 p-4">
+         <View className="flex flex-row items-center justify-start bg-emerald-900 p-4">
         <TouchableOpacity
           onPress={() => router.back()} // Navigate back
         >
@@ -59,6 +57,9 @@ const All_orders = () => {
         </Text>
       </View>
 
+      <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
+
+   
         {/* Receiver Details Component */}
         <ReceiverDetails
           onNameChange={(newName) => setName(newName)}
@@ -83,13 +84,14 @@ const All_orders = () => {
         <EstimateDetails />
         <DeviceKYCForm/>
         <RepairPartner/>
-        <BottomBar
+     
+      </ScrollView>
+      <BottomBar
         onPhonePress={handlePhonePress}
         onMessagePress={handleMessagePress}
         onWhatsAppPress={handleWhatsAppPress}
         onPrintPress={handlePrintPress}
       />
-      </ScrollView>
     </SafeAreaView>
   );
 };

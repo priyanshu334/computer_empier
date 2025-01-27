@@ -1,87 +1,158 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
+} from "react-native";
 
-type ReceiverDetailsProps = {
-  onNameChange: (name: string) => void;
-  onDesignationChange: (designation: string) => void;
-};
+interface DialogComponentProps {
+  onLockCodeSubmit: (lockCode: string) => void; // Callback to pass the lock code to the parent
+}
 
-const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
-  onNameChange,
-  onDesignationChange,
+const DialogComponent: React.FC<DialogComponentProps> = ({
+  onLockCodeSubmit,
 }) => {
-  const [selectedDesignation, setSelectedDesignation] = useState<string>("");
+  const [isDialogVisible, setDialogVisible] = useState(false);
+  const [lockCode, setLockCode] = useState(""); // State to store the lock code
 
-  const handleDesignationSelect = (designation: string) => {
-    setSelectedDesignation(designation);
-    onDesignationChange(designation);
+  const openDialog = () => setDialogVisible(true);
+  const closeDialog = () => {
+    setLockCode(""); // Clear the lock code when dialog is closed
+    setDialogVisible(false);
+  };
+
+  const handleAdd = () => {
+    if (lockCode.trim() === "") {
+      alert("Please enter a lock code!");
+      return;
+    }
+    onLockCodeSubmit(lockCode); // Pass the lock code to the parent
+    closeDialog();
   };
 
   return (
-    <View className="bg-[#F0FDF4] p-4 rounded-md shadow">
-      {/* Title */}
-      <Text className="text-lg font-semibold text-blue-600 mb-4">
-        Receiver Details
-      </Text>
+    <View style={styles.container}>
+      {/* Button to open dialog */}
+      <TouchableOpacity style={styles.openButton} onPress={openDialog}>
+        <Text style={styles.openButtonText}>Open Dialog</Text>
+      </TouchableOpacity>
 
-      {/* Name Input */}
-      <View className="flex-row items-center bg-white border border-gray-300 rounded-md px-3 py-2 mb-4">
-        <AntDesign name="user" size={20} color="gray" />
-        <TextInput
-          placeholder="Enter Your Name"
-          className="flex-1 ml-3 text-gray-800"
-          onChangeText={onNameChange}
-        />
-      </View>
+      {/* Dialog */}
+      <Modal
+        visible={isDialogVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeDialog}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.dialogBox}>
+            <Text style={styles.dialogTitle}>Enter Lock Code</Text>
 
-      {/* Designation Selection */}
-      <Text className="text-base font-semibold text-gray-800 mb-2">
-        Designation
-      </Text>
-      <View className="flex-row justify-between">
-        {/* Owner Button */}
-        <TouchableOpacity
-          onPress={() => handleDesignationSelect("Owner")}
-          className={`flex-1 items-center py-3 rounded-md mr-2 ${
-            selectedDesignation === "Owner"
-              ? "bg-blue-600"
-              : "bg-gray-200"
-          }`}
-        >
-          <Text
-            className={`font-semibold ${
-              selectedDesignation === "Owner"
-                ? "text-white"
-                : "text-gray-800"
-            }`}
-          >
-            Owner
-          </Text>
-        </TouchableOpacity>
+            {/* Lock Code Input */}
+            <TextInput
+              style={styles.textInput}
+              placeholder="Enter lock code"
+              placeholderTextColor="#9CA3AF"
+              value={lockCode}
+              onChangeText={setLockCode}
+              secureTextEntry // Hides input for sensitive data
+            />
 
-        {/* Staff Button */}
-        <TouchableOpacity
-          onPress={() => handleDesignationSelect("Staff")}
-          className={`flex-1 items-center py-3 rounded-md ml-2 ${
-            selectedDesignation === "Staff"
-              ? "bg-blue-600"
-              : "bg-gray-200"
-          }`}
-        >
-          <Text
-            className={`font-semibold ${
-              selectedDesignation === "Staff"
-                ? "text-white"
-                : "text-gray-800"
-            }`}
-          >
-            Staff
-          </Text>
-        </TouchableOpacity>
-      </View>
+            {/* Action Buttons */}
+            <View style={styles.buttonRow}>
+              {/* Add Button */}
+              <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
+                <Text style={styles.buttonText}>Add</Text>
+              </TouchableOpacity>
+              {/* Cancel Button */}
+              <TouchableOpacity style={styles.cancelButton} onPress={closeDialog}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
-export default ReceiverDetails;
+export default DialogComponent;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F3F4F6",
+  },
+  openButton: {
+    backgroundColor: "#4F46E5",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  openButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  dialogBox: {
+    width: "80%",
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  dialogTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  textInput: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 16,
+    marginBottom: 20,
+    color: "#1F2937",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  addButton: {
+    backgroundColor: "#10B981",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  cancelButton: {
+    backgroundColor: "#EF4444",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
