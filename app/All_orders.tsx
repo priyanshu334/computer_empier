@@ -6,8 +6,30 @@ import OrderDetails from "@/components/order_details"; // Import OrderDetails co
 import { SafeAreaView } from "react-native-safe-area-context";
 import EstimateDetails from "@/components/estimate_details";
 import RepairPartner from "@/components/repair_partner";
+import DeviceKYCForm from "@/components/DeviceKycForm";
+import BottomBar from "@/components/bottom_bar";
 
 const All_orders = () => {
+
+    const handlePhonePress = () => {
+        console.log("Phone button pressed!");
+        // Add navigation or functionality here
+      };
+    
+      const handleMessagePress = () => {
+        console.log("Message button pressed!");
+        // Add navigation or functionality here
+      };
+    
+      const handleWhatsAppPress = () => {
+        console.log("WhatsApp button pressed!");
+        // Add navigation or functionality here
+      };
+    
+      const handlePrintPress = () => {
+        console.log("Print button pressed!");
+        // Add navigation or functionality here
+      };
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,7 +67,14 @@ const All_orders = () => {
 
         {/* Estimate Details Component */}
         <EstimateDetails />
+        <DeviceKYCForm/>
         <RepairPartner/>
+        <BottomBar
+        onPhonePress={handlePhonePress}
+        onMessagePress={handleMessagePress}
+        onWhatsAppPress={handleWhatsAppPress}
+        onPrintPress={handlePrintPress}
+      />
       </ScrollView>
     </SafeAreaView>
   );
