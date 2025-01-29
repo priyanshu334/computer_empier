@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { useServiceProviders } from "../hooks/useServiceProvider"; // Import the custom hook
 
 // Type definition for a service provider
 interface ServiceProvider {
@@ -19,44 +13,13 @@ interface ServiceProvider {
 }
 
 export default function ServiceProviders() {
-  const [providers, setProviders] = useState<ServiceProvider[]>([]);
+  const { providers, addOrUpdateProvider, deleteProvider } = useServiceProviders(); // Use the custom hook
   const [providerName, setProviderName] = useState<string>("");
   const [contactNumber, setContactNumber] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [editingProvider, setEditingProvider] = useState<ServiceProvider | null>(null);
 
-  const PROVIDERS_KEY = "@service_providers";
-
-  // Load providers from AsyncStorage when the component mounts
-  useEffect(() => {
-    const loadProviders = async () => {
-      try {
-        const storedProviders = await AsyncStorage.getItem(PROVIDERS_KEY);
-        if (storedProviders) {
-          setProviders(JSON.parse(storedProviders));
-        }
-      } catch (error) {
-        console.error("Failed to load providers from AsyncStorage:", error);
-      }
-    };
-
-    loadProviders();
-  }, []);
-
-  // Save providers to AsyncStorage whenever the providers state changes
-  useEffect(() => {
-    const saveProviders = async () => {
-      try {
-        await AsyncStorage.setItem(PROVIDERS_KEY, JSON.stringify(providers));
-      } catch (error) {
-        console.error("Failed to save providers to AsyncStorage:", error);
-      }
-    };
-
-    saveProviders();
-  }, [providers]);
-
-  // Function to add a new provider or save edits
+  // Add or update a service provider
   const handleAddOrEditProvider = () => {
     if (providerName && contactNumber) {
       const newProvider: ServiceProvider = {
@@ -66,31 +29,17 @@ export default function ServiceProviders() {
         description,
       };
 
-      if (editingProvider) {
-        // Update existing provider
-        const updatedProviders = providers.map((provider) =>
-          provider.id === editingProvider.id ? newProvider : provider
-        );
-        setProviders(updatedProviders);
-        setEditingProvider(null); // Reset the editing state
-      } else {
-        // Add new provider
-        setProviders([...providers, newProvider]);
-      }
+      addOrUpdateProvider(newProvider); // Use the custom hook's method to save the provider
 
       // Clear form
       setProviderName("");
       setContactNumber("");
       setDescription("");
+      setEditingProvider(null); // Reset editing state
     }
   };
 
-  // Function to delete a provider
-  const handleDeleteProvider = (id: string) => {
-    setProviders(providers.filter((provider) => provider.id !== id));
-  };
-
-  // Function to start editing a provider
+  // Edit a service provider
   const handleEditProvider = (provider: ServiceProvider) => {
     setProviderName(provider.name);
     setContactNumber(provider.contact);
@@ -185,7 +134,7 @@ export default function ServiceProviders() {
                 <TouchableOpacity onPress={() => handleEditProvider(item)} className="mr-4">
                   <AntDesign name="edit" size={24} color="blue" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteProvider(item.id)}>
+                <TouchableOpacity onPress={() => deleteProvider(item.id)}>
                   <AntDesign name="delete" size={24} color="red" />
                 </TouchableOpacity>
               </View>

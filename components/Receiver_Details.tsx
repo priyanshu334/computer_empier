@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Platform, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
 type ReceiverDetailsProps = {
@@ -20,10 +20,9 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Title */}
       <Text style={styles.title}>Receiver Details</Text>
 
-      {/* Name Input */}
+      {/* Receiver Name */}
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Receiver Name</Text>
         <View style={styles.inputWrapper}>
@@ -80,7 +79,7 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
-    padding: 10,
+    padding: 16,
     borderRadius: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

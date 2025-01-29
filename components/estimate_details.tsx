@@ -8,11 +8,18 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; // For calendar and clock icons
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 
-const EstimateDetails: React.FC = () => {
+type EstimateDetailsProps = {
+  onDataChange: (data: {
+    repairCost: string;
+    advancePaid: string;
+    pickupDate: Date | null;
+    pickupTime: Date | null;
+  }) => void;
+};
+
+const EstimateDetails: React.FC<EstimateDetailsProps> = ({ onDataChange }) => {
   const [repairCost, setRepairCost] = useState<string>("");
   const [advancePaid, setAdvancePaid] = useState<string>("");
   const [pickupDate, setPickupDate] = useState<Date | null>(null);
@@ -24,12 +31,24 @@ const EstimateDetails: React.FC = () => {
     const currentDate = selectedDate || pickupDate;
     setShowDatePicker(Platform.OS === "ios");
     setPickupDate(currentDate);
+    onDataChange({ repairCost, advancePaid, pickupDate: currentDate, pickupTime });
   };
 
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
     const currentTime = selectedTime || pickupTime;
     setShowTimePicker(Platform.OS === "ios");
     setPickupTime(currentTime);
+    onDataChange({ repairCost, advancePaid, pickupDate, pickupTime: currentTime });
+  };
+
+  const handleRepairCostChange = (cost: string) => {
+    setRepairCost(cost);
+    onDataChange({ repairCost: cost, advancePaid, pickupDate, pickupTime });
+  };
+
+  const handleAdvancePaidChange = (paid: string) => {
+    setAdvancePaid(paid);
+    onDataChange({ repairCost, advancePaid: paid, pickupDate, pickupTime });
   };
 
   return (
@@ -43,7 +62,7 @@ const EstimateDetails: React.FC = () => {
           style={styles.input}
           placeholder="Enter Repair Cost"
           value={repairCost}
-          onChangeText={setRepairCost}
+          onChangeText={handleRepairCostChange}
           keyboardType="numeric"
         />
       </View>
@@ -55,7 +74,7 @@ const EstimateDetails: React.FC = () => {
           style={styles.input}
           placeholder="Enter Advance Paid"
           value={advancePaid}
-          onChangeText={setAdvancePaid}
+          onChangeText={handleAdvancePaidChange}
           keyboardType="numeric"
         />
       </View>
@@ -103,11 +122,6 @@ const EstimateDetails: React.FC = () => {
           />
         )}
       </View>
-
-      {/* Confirm Button */}
-      <TouchableOpacity style={styles.confirmButton}>
-        <Text style={styles.confirmButtonText}>Confirm</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -156,21 +170,6 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 16,
     color: "#333",
-  },
-  confirmButton: {
-    backgroundColor: "#34D399",
-    borderRadius: 8,
-    alignItems: "center",
-    padding: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "white",
   },
 });
 

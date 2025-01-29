@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Alert, FlatList } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  Alert,
+  FlatList,
+} from "react-native";
+import { loadCustomers, saveCustomers } from "../hooks/useCustomer"; // Import the utility functions
 
 type CustomerDetailsProps = {
   onSearchChange: (searchTerm: string) => void;
   onAdd: (customerDetails: { name: string; number: string; address: string }) => void;
+  onSelect: (customerDetails: { name: string; number: string; address: string } | null) => void;
 };
 
-const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd }) => {
+const CustomerDetails: React.FC<CustomerDetailsProps> = ({
+  onSearchChange,
+  onAdd,
+  onSelect,
+}) => {
   const [isAddModalVisible, setAddModalVisible] = useState(false);
   const [isSelectModalVisible, setSelectModalVisible] = useState(false);
   const [customerName, setCustomerName] = useState("");
@@ -16,36 +30,32 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
   const [storedCustomers, setStoredCustomers] = useState<
     { name: string; number: string; address: string }[]
   >([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<
+    { name: string; number: string; address: string }[]
+  >([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<
     { name: string; number: string; address: string } | null
   >(null);
 
-  // Load customers from AsyncStorage on component mount
   useEffect(() => {
-    const loadCustomers = async () => {
-      try {
-        const data = await AsyncStorage.getItem("customers");
-        if (data) {
-          setStoredCustomers(JSON.parse(data));
-        }
-      } catch (error) {
-        console.error("Failed to load customers from AsyncStorage:", error);
-      }
-    };
-    loadCustomers();
-  }, []);
-
-  // Save customers to AsyncStorage
-  const saveCustomers = async (customers: typeof storedCustomers) => {
-    try {
-      await AsyncStorage.setItem("customers", JSON.stringify(customers));
+    const loadCustomerData = async () => {
+      const customers = await loadCustomers();
       setStoredCustomers(customers);
-    } catch (error) {
-      console.error("Failed to save customers to AsyncStorage:", error);
-    }
+      setFilteredCustomers(customers); // Initialize with all customers
+    };
+    loadCustomerData();
+  }, [customerAddress, customerName, customerNumber]);
+
+  const handleSearchChange = (term: string) => {
+    setSearchTerm(term);
+    onSearchChange(term); // Notify parent component
+    const filtered = storedCustomers.filter((customer) =>
+      customer.name.toLowerCase().includes(term.toLowerCase())
+    );
+    setFilteredCustomers(filtered);
   };
 
-  // Add a new customer
   const handleAddCustomer = () => {
     if (!customerName || !customerNumber || !customerAddress) {
       Alert.alert("Error", "All fields are required!");
@@ -61,27 +71,25 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
     const updatedCustomers = [...storedCustomers, newCustomer];
     saveCustomers(updatedCustomers);
 
-    // Clear the modal fields
     setAddModalVisible(false);
     setCustomerName("");
     setCustomerNumber("");
     setCustomerAddress("");
 
-    onAdd(newCustomer); // Callback to parent component
-    Alert.alert("Success", "Customer added successfully!");
+    onAdd(newCustomer);
+   
   };
 
-  // Handle customer selection
   const handleSelectCustomer = (customer: { name: string; number: string; address: string }) => {
     setSelectedCustomer(customer);
     setSelectModalVisible(false);
+    onSelect(customer); // Notify parent component about the selected customer
   };
 
   return (
-    <View className="bg-white p-4 rounded-lg shadow-md my-4">
-      <Text className="text-lg font-semibold text-blue-600 mb-4">Customer Details</Text>
+    <View className="bg-white p-4 rounded-lg shadow-md my-10">
+      <Text className="text-lg font-semibold text-blue-600 mb-5">Customer Details</Text>
 
-      {/* Selected Customer */}
       {selectedCustomer && (
         <View className="mb-4">
           <Text className="text-sm font-medium mb-2">Selected Customer</Text>
@@ -93,17 +101,16 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
         </View>
       )}
 
-      {/* Search Input */}
       <View className="mb-4">
         <Text className="text-sm font-medium mb-2">Search Customer</Text>
         <TextInput
           className="border border-gray-300 rounded-md p-2"
           placeholder="Enter Name"
-          onChangeText={onSearchChange}
+          value={searchTerm}
+          onChangeText={handleSearchChange}
         />
       </View>
 
-      {/* Action Buttons */}
       <View className="flex-row gap-4 justify-start items-center mb-4">
         <TouchableOpacity
           onPress={() => setSelectModalVisible(true)}
@@ -120,7 +127,6 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
         </TouchableOpacity>
       </View>
 
-      {/* Modal for Adding Customer */}
       <Modal
         visible={isAddModalVisible}
         transparent
@@ -131,7 +137,6 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
           <View style={styles.modalContent}>
             <Text className="text-lg font-semibold text-blue-600 mb-4">Add Customer</Text>
 
-            {/* Customer Name */}
             <View className="mb-4">
               <Text className="text-sm font-medium mb-2">Customer Name</Text>
               <TextInput
@@ -142,7 +147,6 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
               />
             </View>
 
-            {/* Customer Number */}
             <View className="mb-4">
               <Text className="text-sm font-medium mb-2">Customer Number</Text>
               <TextInput
@@ -154,7 +158,6 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
               />
             </View>
 
-            {/* Customer Address */}
             <View className="mb-4">
               <Text className="text-sm font-medium mb-2">Customer Address</Text>
               <TextInput
@@ -165,7 +168,6 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
               />
             </View>
 
-            {/* Action Buttons */}
             <View className="flex-row justify-between space-x-2">
               <TouchableOpacity
                 onPress={handleAddCustomer}
@@ -184,7 +186,6 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
         </View>
       </Modal>
 
-      {/* Modal for Selecting Customer */}
       <Modal
         visible={isSelectModalVisible}
         transparent
@@ -195,9 +196,8 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
           <View style={styles.modalContent}>
             <Text className="text-lg font-semibold text-blue-600 mb-4">Select Customer</Text>
 
-            {/* Customer List */}
             <FlatList
-              data={storedCustomers}
+              data={filteredCustomers}
               keyExtractor={(item, index) => `${item.name}-${index}`}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -210,11 +210,10 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({ onSearchChange, onAdd
                 </TouchableOpacity>
               )}
               ListEmptyComponent={
-                <Text className="text-gray-600 text-center py-4">No customers available.</Text>
+                <Text className="text-gray-600 text-center py-4">No customers found.</Text>
               }
             />
 
-            {/* Close Button */}
             <TouchableOpacity
               onPress={() => setSelectModalVisible(false)}
               className="bg-gray-300 px-4 py-2 rounded-md mt-4"
@@ -248,4 +247,3 @@ const styles = StyleSheet.create({
 });
 
 export default CustomerDetails;
-  

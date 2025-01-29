@@ -1,15 +1,16 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
-const OrderDetails: React.FC = () => {
+type OrderDetailsProps = {
+  onDataChange: (data: {
+    deviceModel: string;
+    orderStatus: string;
+    problems: string[];
+  }) => void;
+};
+
+const OrderDetails: React.FC<OrderDetailsProps> = ({ onDataChange }) => {
   const [deviceModel, setDeviceModel] = useState<string>("");
   const [orderStatus, setOrderStatus] = useState<string>("Pending");
   const [problemText, setProblemText] = useState<string>("");
@@ -20,8 +21,30 @@ const OrderDetails: React.FC = () => {
       alert("Please enter a valid problem description.");
       return;
     }
-    setProblems((prevProblems) => [...prevProblems, problemText]);
+    setProblems((prevProblems) => {
+      const updatedProblems = [...prevProblems, problemText];
+      onDataChange({ deviceModel, orderStatus, problems: updatedProblems }); // Send updated data to parent
+      return updatedProblems;
+    });
     setProblemText(""); // Clear the input after adding
+  };
+
+  const handleDeleteProblem = (index: number) => {
+    setProblems((prevProblems) => {
+      const updatedProblems = prevProblems.filter((_, i) => i !== index);
+      onDataChange({ deviceModel, orderStatus, problems: updatedProblems }); // Send updated data to parent
+      return updatedProblems;
+    });
+  };
+
+  const handleDeviceModelChange = (model: string) => {
+    setDeviceModel(model);
+    onDataChange({ deviceModel: model, orderStatus, problems });
+  };
+
+  const handleOrderStatusChange = (status: string) => {
+    setOrderStatus(status);
+    onDataChange({ deviceModel, orderStatus: status, problems });
   };
 
   return (
@@ -34,7 +57,7 @@ const OrderDetails: React.FC = () => {
         <TextInput
           style={styles.input}
           value={deviceModel}
-          onChangeText={setDeviceModel}
+          onChangeText={handleDeviceModelChange}
           placeholder="Enter Device Model"
         />
       </View>
@@ -44,7 +67,7 @@ const OrderDetails: React.FC = () => {
         <Text style={styles.label}>Order Status</Text>
         <Picker
           selectedValue={orderStatus}
-          onValueChange={(itemValue) => setOrderStatus(itemValue)}
+          onValueChange={handleOrderStatusChange}
           style={styles.picker}
         >
           <Picker.Item label="Pending" value="Pending" />
@@ -83,6 +106,12 @@ const OrderDetails: React.FC = () => {
                 <Text style={styles.problemText}>
                   Problem {index + 1}: {item}
                 </Text>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteProblem(index)}
+                >
+                  <Text style={styles.deleteButtonText}>Delete</Text>
+                </TouchableOpacity>
               </View>
             )}
           />
@@ -155,6 +184,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   problemItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#ccc",
     paddingVertical: 8,
@@ -162,6 +194,19 @@ const styles = StyleSheet.create({
   problemText: {
     fontSize: 14,
     color: "#333",
+    flex: 1,
+  },
+  deleteButton: {
+    backgroundColor: "red",
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    marginLeft: 8,
+  },
+  deleteButtonText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   noProblemsText: {
     fontSize: 14,

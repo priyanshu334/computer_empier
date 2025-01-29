@@ -1,10 +1,24 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Platform, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Linking, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
+import { Picker } from "@react-native-picker/picker"; // Picker for dropdown
+import { useServiceCenters } from "../hooks/useServiceCenters"; // Import the custom hook
+import { useServiceProviders } from "@/hooks/useServiceProvider";
 
-const ReceiverDetails = () => {
+type RepairPartnerProps = {
+  onDataChange: (data: {
+    selectedRepairStation: string | null;
+    selectedInHouseOption: string;
+    selectedServiceCenterOption: string;
+    pickupDate: Date | null;
+    pickupTime: Date | null;
+  }) => void;
+};
+
+const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange }) => {
+  const { centers } = useServiceCenters(); // Use the custom hook to fetch centers
+  const { providers } = useServiceProviders();
   const [selectedRepairStation, setSelectedRepairStation] = useState<
     "in-house" | "service-center" | null
   >(null);
@@ -14,17 +28,63 @@ const ReceiverDetails = () => {
   const [pickupTime, setPickupTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || pickupDate;
     setShowDatePicker(Platform.OS === "ios");
     setPickupDate(currentDate);
+    onDataChange({
+      selectedRepairStation,
+      selectedInHouseOption,
+      selectedServiceCenterOption,
+      pickupDate: currentDate,
+      pickupTime,
+    });
   };
 
   const handleTimeChange = (event: any, selectedTime?: Date) => {
     const currentTime = selectedTime || pickupTime;
     setShowTimePicker(Platform.OS === "ios");
     setPickupTime(currentTime);
+    onDataChange({
+      selectedRepairStation,
+      selectedInHouseOption,
+      selectedServiceCenterOption,
+      pickupDate,
+      pickupTime: currentTime,
+    });
+  };
+const phoneNumber = selectedServiceCenterOption;
+  const messageText = "Hello! This is a test message.";
+
+  // Handler for phone, message, and WhatsApp actions
+  const handlePhonePress = () => {
+    const phoneUrl = `tel:${phoneNumber}`;
+    Linking.openURL(phoneUrl).catch(() =>
+      Alert.alert("Error", "Phone app could not be opened.")
+    );
+  };
+
+  const handleMessagePress = () => {
+    const messageUrl = `sms:${phoneNumber}?body=${encodeURIComponent(
+      messageText
+    )}`;
+    Linking.openURL(messageUrl).catch(() =>
+      Alert.alert("Error", "Message app could not be opened.")
+    );
+  };
+
+  const handleWhatsAppPress = () => {
+    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
+      messageText
+    )}`;
+    Linking.openURL(whatsappUrl).catch(() =>
+      Alert.alert(
+        "Error",
+        "WhatsApp is not installed on this device or could not be opened."
+      )
+    );
   };
 
   return (
@@ -36,7 +96,16 @@ const ReceiverDetails = () => {
       <View style={styles.row}>
         <TouchableOpacity
           style={styles.repairStationOption}
-          onPress={() => setSelectedRepairStation("in-house")}
+          onPress={() => {
+            setSelectedRepairStation("in-house");
+            onDataChange({
+              selectedRepairStation: "in-house",
+              selectedInHouseOption,
+              selectedServiceCenterOption,
+              pickupDate,
+              pickupTime,
+            });
+          }}
         >
           <Ionicons
             name={selectedRepairStation === "in-house" ? "checkbox" : "square-outline"}
@@ -48,7 +117,16 @@ const ReceiverDetails = () => {
 
         <TouchableOpacity
           style={styles.repairStationOption}
-          onPress={() => setSelectedRepairStation("service-center")}
+          onPress={() => {
+            setSelectedRepairStation("service-center");
+            onDataChange({
+              selectedRepairStation: "service-center",
+              selectedInHouseOption,
+              selectedServiceCenterOption,
+              pickupDate,
+              pickupTime,
+            });
+          }}
         >
           <Ionicons
             name={
@@ -57,7 +135,8 @@ const ReceiverDetails = () => {
             size={24}
             color={selectedRepairStation === "service-center" ? "#2563EB" : "#4B5563"}
           />
-          <Text style={styles.optionText}>Service Center</Text>
+          <Text style={styles.optionText}>Serv
+            ice Center</Text>
         </TouchableOpacity>
       </View>
 
@@ -67,12 +146,38 @@ const ReceiverDetails = () => {
           <Text style={styles.subHeader}>Select Service Provider</Text>
           <Picker
             selectedValue={selectedInHouseOption}
-            onValueChange={setSelectedInHouseOption}
+            onValueChange={(itemValue) => {
+              setSelectedInHouseOption(itemValue);
+              onDataChange({
+                selectedRepairStation,
+                selectedInHouseOption: itemValue,
+                selectedServiceCenterOption,
+                pickupDate,
+                pickupTime,
+              });
+            }}
             style={styles.picker}
           >
-            <Picker.Item label="Provider 1" value="provider1" />
-            <Picker.Item label="Provider 2" value="provider2" />
+                          {providers.map((provider) => (
+                <Picker.Item
+                  key={provider.id}
+                  label={provider.name}
+                  value={provider.id}
+                />
+              ))}
           </Picker>
+
+          <View style={styles.iconsContainer}>
+            <TouchableOpacity onPress={handlePhonePress}>
+              <Ionicons name="call-outline" size={32} color="#4B5563" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleMessagePress}>
+              <Ionicons name="chatbox-outline" size={32} color="#4B5563" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleWhatsAppPress}>
+              <Ionicons name="logo-whatsapp" size={32} color="#4B5563" />
+            </TouchableOpacity>
+          </View>``
         </View>
       )}
 
@@ -82,11 +187,26 @@ const ReceiverDetails = () => {
             <Text style={styles.subHeader}>Select Service Center Option</Text>
             <Picker
               selectedValue={selectedServiceCenterOption}
-              onValueChange={setSelectedServiceCenterOption}
+              onValueChange={(itemValue) => {
+                setSelectedServiceCenterOption(itemValue);
+                onDataChange({
+                  selectedRepairStation,
+                  selectedInHouseOption,
+                  selectedServiceCenterOption: itemValue,
+                  pickupDate,
+                  pickupTime,
+                });
+              }}
               style={styles.picker}
             >
-              <Picker.Item label="Service 1" value="service1" />
-              <Picker.Item label="Service 2" value="service2" />
+              {/* Dynamically populate the Picker with service center options */}
+              {centers.map((center) => (
+                <Picker.Item
+                  key={center.id}
+                  label={center.name}
+                  value={center.id}
+                />
+              ))}
             </Picker>
           </View>
 
@@ -136,13 +256,13 @@ const ReceiverDetails = () => {
 
           {/* Communication Icons */}
           <View style={styles.iconsContainer}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handlePhonePress}>
               <Ionicons name="call-outline" size={32} color="#4B5563" />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleMessagePress}>
               <Ionicons name="chatbox-outline" size={32} color="#4B5563" />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleWhatsAppPress}>
               <Ionicons name="logo-whatsapp" size={32} color="#4B5563" />
             </TouchableOpacity>
           </View>
@@ -152,18 +272,21 @@ const ReceiverDetails = () => {
   );
 };
 
+
+
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#fff",
     padding: 16,
     borderRadius: 8,
-    marginBottom: 16,
+    marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    marginHorizontal: 16,
+    marginHorizontal: 10,
   },
   header: {
     fontSize: 18,
@@ -223,4 +346,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReceiverDetails;
+export default RepairPartner;

@@ -1,81 +1,74 @@
-import React from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
+import { useServiceCenters } from "../hooks/useServiceCenters"; // Custom hook to load Service Centers
+import { useServiceProviders } from "../hooks/useServiceProvider"; // Custom hook to load Service Providers
 
 const FilterComponent = () => {
-  const [serviceCenter, setServiceCenter] = React.useState(null);
-  const [serviceProvider, setServiceProvider] = React.useState(null);
+  const [serviceCenter, setServiceCenter] = useState<string | null>(null);
+  const [serviceProvider, setServiceProvider] = useState<string | null>(null);
 
-  const [serviceCenterOpen, setServiceCenterOpen] = React.useState(false);
-  const [serviceProviderOpen, setServiceProviderOpen] = React.useState(false);
+  const [serviceCenterOpen, setServiceCenterOpen] = useState(false);
+  const [serviceProviderOpen, setServiceProviderOpen] = useState(false);
 
-  const [serviceCenterItems, setServiceCenterItems] = React.useState([
-    { label: "Center 1", value: "center1" },
-    { label: "Center 2", value: "center2" },
-  ]);
+  const { centers } = useServiceCenters(); // Using custom hook to get service centers
+  const { providers } = useServiceProviders(); // Using custom hook to get service providers
 
-  const [serviceProviderItems, setServiceProviderItems] = React.useState([
+  // Sample data for service providers
+  const [serviceProviderItems, setServiceProviderItems] = useState([
     { label: "Provider 1", value: "provider1" },
     { label: "Provider 2", value: "provider2" },
   ]);
 
+  useEffect(() => {
+    // You can modify this if you want to update service providers dynamically
+    setServiceProviderItems(
+      providers.map((provider) => ({
+        label: provider.name,
+        value: provider.id,
+      }))
+    );
+  }, [providers]);
+
   return (
-    <View className="flex flex-col gap-4 p-4 border border-gray-300 rounded-md bg-[#F0FDF4]">
+    <View style={styles.container}>
       {/* Title */}
-      <View className="flex flex-row gap-2 items-center">
+      <View style={styles.header}>
         <AntDesign name="filter" size={24} color="#047857" />
-        <Text className="text-lg font-bold text-blue-600">Filters</Text>
+        <Text style={styles.headerText}>Filters</Text>
       </View>
-      <View className="flex flex-col gap-4 p-4 border border-gray-300 rounded-md bg-white">
+
+      <View style={styles.filterBox}>
         {/* Customer Name Input */}
-        <View className="bg-[#F0FDF4]">
-          <TextInput
-            placeholder="Enter customer name"
-            placeholderTextColor="#9CA3AF"
-            className="border border-gray-300 rounded-md p-2"
-            style={{ height: 42 }}
-          />
-        </View>
+        <TextInput
+          placeholder="Enter customer name"
+          placeholderTextColor="#9CA3AF"
+          style={styles.input}
+        />
 
         {/* Service Center Dropdown */}
-        <View
-          className="flex flex-col gap-2"
-          style={{ zIndex: serviceCenterOpen ? 2000 : 1000 }}
-        >
-          {/* <Text className="font-semibold">Service Center</Text> */}
+        <View style={{ zIndex: serviceCenterOpen ? 2000 : 1000 }}>
           <DropDownPicker
             open={serviceCenterOpen}
             value={serviceCenter}
-            items={serviceCenterItems}
+            items={centers.map((center) => ({
+              label: center.name, 
+              value: center.id
+            }))}
             setOpen={setServiceCenterOpen}
             setValue={setServiceCenter}
-            setItems={setServiceCenterItems}
+            setItems={() => {}}
             placeholder="Select Service Center"
-            placeholderStyle={{ color: "#888" }}
-            style={{
-              backgroundColor: "#F0FDF4",
-              borderColor: "#d1d5db",
-              height: 48,
-            }}
-            dropDownContainerStyle={{
-              backgroundColor: "#F0FDF4",
-              borderColor: "#d1d5db",
-            }}
-            textStyle={{
-              fontSize: 14,
-              color: "#374151",
-            }}
+            placeholderStyle={styles.dropdownPlaceholder}
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownContainer}
+            textStyle={styles.dropdownText}
           />
         </View>
 
         {/* Service Provider Dropdown */}
-        <View
-          style={{
-            zIndex: serviceProviderOpen ? 2000 : 999,
-          }}
-        >
-          {/* <Text className="font-semibold">Service Provider</Text> */}
+        <View style={{ zIndex: serviceProviderOpen ? 2000 : 999 }}>
           <DropDownPicker
             open={serviceProviderOpen}
             value={serviceProvider}
@@ -84,43 +77,110 @@ const FilterComponent = () => {
             setValue={setServiceProvider}
             setItems={setServiceProviderItems}
             placeholder="Select Service Provider"
-            placeholderStyle={{ color: "#888" }}
-            style={{
-              backgroundColor: "#F0FDF4",
-              borderColor: "#d1d5db",
-              height: 48,
-            }}
-            dropDownContainerStyle={{
-              backgroundColor: "#F0FDF4",
-              borderColor: "#d1d5db",
-            }}
-            textStyle={{
-              fontSize: 14,
-              color: "#374151",
-            }}
+            placeholderStyle={styles.dropdownPlaceholder}
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownContainer}
+            textStyle={styles.dropdownText}
           />
         </View>
 
-        <View className="flex flex-row justify-between">
+        {/* Footer Section */}
+        <View style={styles.footer}>
           {/* Repair Date */}
-          <View className="flex flex-col gap-4 justify-center">
-            {/* <Text className="font-semibold">Repair Date</Text> */}
-            <TouchableOpacity className="flex flex-row gap-4">
-              <AntDesign name="calendar" size={20} color="#9CA3AF" />
-              <Text className="font-medium">Select Date</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.dateButton}>
+            <AntDesign name="calendar" size={20} color="#9CA3AF" />
+            <Text style={styles.dateButtonText}>Select Date</Text>
+          </TouchableOpacity>
 
           {/* Apply Filters Button */}
-          <View>
-            <TouchableOpacity className="bg-emerald-700 p-4 rounded-md">
-              <Text className="font-semibold text-white">Apply</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.applyButton}>
+            <Text style={styles.applyButtonText}>Apply</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#F0FDF4",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  headerText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#047857",
+    marginLeft: 8,
+  },
+  filterBox: {
+    padding: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+  },
+  input: {
+    height: 42,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    backgroundColor: "#F0FDF4",
+    marginBottom: 16,
+  },
+  dropdown: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#D1D5DB",
+    height: 48,
+    borderRadius: 8,
+  },
+  dropdownContainer: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#D1D5DB",
+  },
+  dropdownPlaceholder: {
+    color: "#9CA3AF",
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: "#374151",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 16,
+  },
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dateButtonText: {
+    fontSize: 14,
+    color: "#374151",
+    marginLeft: 8,
+  },
+  applyButton: {
+    backgroundColor: "#047857",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  applyButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
 
 export default FilterComponent;

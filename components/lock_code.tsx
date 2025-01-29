@@ -58,9 +58,14 @@ const DialogComponent: React.FC<DialogComponentProps> = ({
               placeholderTextColor="#9CA3AF"
               value={lockCode}
               onChangeText={setLockCode}
-              secureTextEntry // Hides input for sensitive data
+           // Hides input for sensitive data
             />
+            if(handleAdd){
+                <Text>{lockCode}</Text>
 
+
+            }
+          
             {/* Action Buttons */}
             <View style={styles.buttonRow}>
               {/* Add Button */}

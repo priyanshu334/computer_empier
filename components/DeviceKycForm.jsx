@@ -5,165 +5,173 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
+  ScrollView,
 } from "react-native";
 import { FontAwesome, MaterialIcons, AntDesign } from "@expo/vector-icons";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import CameraDialog from "./model_details"; // Import CameraDialog
 import DialogComponent from "./lock_code";
-import BarcodeScanner from "./bar_code_scan";
+import { useRouter } from "expo-router";
 
-const DeviceKYCForm = () => {
+const DeviceKYCForm = ({ onSubmit }) => {
   const [isPowerAdapterChecked, setPowerAdapterChecked] = useState(false);
   const [isKeyboardChecked, setKeyboardChecked] = useState(false);
   const [isMouseChecked, setMouseChecked] = useState(false);
   const [isDeviceOnWarranty, setDeviceOnWarranty] = useState(false);
-  const [isCameraDialogVisible, setCameraDialogVisible] = useState(false); // State for modal visibility
+  const [isCameraDialogVisible, setCameraDialogVisible] = useState(false);
+  const [cameraData, setCameraData] = useState(null);
+  const [otherAccessories, setOtherAccessories] = useState("");
+  const [additionalDetails, setAdditionalDetails] = useState("");
+  const [additionalDetailsList, setAdditionalDetailsList] = useState([]);
+  const [lockCode, setLockCode] = useState("");
+  const router = useRouter();
 
-  const handleLockCodeSubmit = (lockCode) => {
-    console.log("Lock Code submitted by user:", lockCode);
-    // You can handle the lock code here (e.g., save it, validate it, etc.)
+  const handleLockCodeSubmit = (code) => {
+    console.log("Lock Code submitted:", code);
+    setLockCode(code);
+  };
+
+  const handleAddAccessory = () => {
+    if (otherAccessories.trim()) {
+      setAdditionalDetailsList((prevList) => [...prevList, otherAccessories.trim()]);
+      setOtherAccessories("");
+    }
+  };
+
+  const handleDeleteAccessory = (index) => {
+    setAdditionalDetailsList((prevList) =>
+      prevList.filter((_, itemIndex) => itemIndex !== index)
+    );
+  };
+
+  const handleSubmit = () => {
+    const formData = {
+      isPowerAdapterChecked,
+      isKeyboardChecked,
+      isMouseChecked,
+      isDeviceOnWarranty,
+      cameraData,
+      otherAccessories,
+      additionalDetailsList,
+      lockCode,
+    };
+
+    onSubmit?.(formData);
+  };
+
+  const handleNavigateToPatternLock = () => {
+    router.push("/PatternLock");
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
+    <ScrollView style={styles.container}>
       <Text style={styles.header}>Device KYC Form</Text>
+
+      {/* Camera Dialog */}
+      <CameraDialog
+        visible={isCameraDialogVisible}
+        onClose={() => setCameraDialogVisible(false)}
+        onSave={(data) => {
+          setCameraData(data);
+          setCameraDialogVisible(false);
+        }}
+      />
 
       {/* Buttons Section */}
       <View style={styles.buttonGroup}>
-        {/* <TouchableOpacity
-          style={styles.button}
-          onPress={() => setCameraDialogVisible(true)} // Show modal
-        >
-          <View style={styles.buttonContent}>
-            <FontAwesome name="info-circle" size={20} color="#4B5563" />
-            <Text style={styles.buttonText}>Model Details</Text>
-          </View>
-        </TouchableOpacity> */}
-        <CameraDialog/>
- 
-        {/* <TouchableOpacity style={styles.button}>
-          <View style={styles.buttonContent}>
-            <MaterialIcons name="lock" size={20} color="#4B5563" />
-            <Text style={styles.buttonText}>Set Lock Code</Text>
-          </View>
-        </TouchableOpacity> */}
-          <DialogComponent onLockCodeSubmit={handleLockCodeSubmit} />
+        <DialogComponent onLockCodeSubmit={handleLockCodeSubmit} />
+        <Text style={styles.infoText}>Lock Code: {lockCode || "Not Set"}</Text>
 
-          
-
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={handleNavigateToPatternLock}>
           <View style={styles.buttonContent}>
             <MaterialIcons name="pattern" size={20} color="#4B5563" />
             <Text style={styles.buttonText}>Set Pattern Lock Code</Text>
           </View>
         </TouchableOpacity>
-
-        {/* <TouchableOpacity style={styles.button}>
-          <View style={styles.buttonContent}>
-            <AntDesign name="scan1" size={20} color="#4B5563" />
-            <Text style={styles.buttonText}>Open Barcode Scanner</Text>
-          </View>
-        </TouchableOpacity> */}
-        <BarcodeScanner/>
       </View>
 
-      {/* Accessories List Section */}
+      {/* Accessories List */}
       <Text style={styles.label}>Accessories List</Text>
       <View style={styles.checkboxGroup}>
         <BouncyCheckbox
           size={25}
           fillColor="#34D399"
-          unfillColor="#FFFFFF"
           text="Power Adapter"
           isChecked={isPowerAdapterChecked}
-          onPress={(isSelected) => setPowerAdapterChecked(isSelected)}
-          iconStyle={{ borderColor: "#34D399", borderRadius: 4 }}
-          textStyle={styles.checkboxText}
-        />
-        <BouncyCheckbox
-          size={25}
-          fillColor="#34D399"
-          unfillColor="#FFFFFF"
-          text="Keyboard"
-          isChecked={isKeyboardChecked}
-          onPress={(isSelected) => setKeyboardChecked(isSelected)}
-          iconStyle={{ borderColor: "#34D399", borderRadius: 4 }}
-          textStyle={styles.checkboxText}
-        />
-        <BouncyCheckbox
-          size={25}
-          fillColor="#34D399"
-          unfillColor="#FFFFFF"
-          text="Mouse"
-          isChecked={isMouseChecked}
-          onPress={(isSelected) => setMouseChecked(isSelected)}
-          iconStyle={{ borderColor: "#34D399", borderRadius: 4 }}
-          textStyle={styles.checkboxText}
-        />
-      </View>
-
-      {/* Additional Options Section */}
-      <View style={styles.additionalOptions}>
-        {/* TextInput for Other Accessories */}
-        <View style={styles.inputContainer}>
-          <AntDesign
-            name="pluscircleo"
-            size={20}
-            color="#4B5563"
-            style={styles.icon}
-          />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Other Accessories"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        {/* TextInput for Additional Details */}
-        <View style={styles.inputContainer}>
-          <FontAwesome
-            name="info-circle"
-            size={20}
-            color="#4B5563"
-            style={styles.icon}
-          />
-          <TextInput
-            style={styles.textInput}
-            placeholder="Additional Details"
-            placeholderTextColor="#9CA3AF"
-          />
-        </View>
-
-        <BouncyCheckbox
-          size={25}
-          fillColor="#34D399"
-          unfillColor="#FFFFFF"
-          text="Device on Warranty"
-          isChecked={isDeviceOnWarranty}
-          onPress={(isSelected) => setDeviceOnWarranty(isSelected)}
+          onPress={setPowerAdapterChecked}
           iconStyle={{ borderColor: "#34D399" }}
           textStyle={styles.checkboxText}
-          className="mb-4"
+        />
+        <BouncyCheckbox
+          size={25}
+          fillColor="#34D399"
+          text="Keyboard"
+          isChecked={isKeyboardChecked}
+          onPress={setKeyboardChecked}
+          iconStyle={{ borderColor: "#34D399" }}
+          textStyle={styles.checkboxText}
+        />
+        <BouncyCheckbox
+          size={25}
+          fillColor="#34D399"
+          text="Mouse"
+          isChecked={isMouseChecked}
+          onPress={setMouseChecked}
+          iconStyle={{ borderColor: "#34D399" }}
+          textStyle={styles.checkboxText}
         />
       </View>
 
-      {/* Confirm Button */}
-      <TouchableOpacity style={styles.submitButton}>
+      {/* Additional Options */}
+      <Text style={styles.label}>Additional Accessories</Text>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Enter accessory name"
+          value={otherAccessories}
+          onChangeText={setOtherAccessories}
+          onSubmitEditing={handleAddAccessory}
+          returnKeyType="done"
+        />
+      </View>
+      {additionalDetailsList.map((detail, index) => (
+        <View key={index} style={styles.additionalItemContainer}>
+          <Text style={styles.additionalItem}>
+            {index + 1}. {detail}
+          </Text>
+          <TouchableOpacity onPress={() => handleDeleteAccessory(index)}>
+            <AntDesign name="delete" size={20} color="#EF4444" />
+          </TouchableOpacity>
+        </View>
+      ))}
+
+      <View style={styles.inputContainer}>
+        <FontAwesome name="info-circle" size={20} color="#4B5563" style={styles.icon} />
+        <TextInput
+          style={styles.textInput}
+          placeholder="Additional Details"
+          value={additionalDetails}
+          onChangeText={setAdditionalDetails}
+        />
+      </View>
+
+      <BouncyCheckbox
+        size={25}
+        fillColor="#34D399"
+        text="Device on Warranty"
+        isChecked={isDeviceOnWarranty}
+        onPress={setDeviceOnWarranty}
+        iconStyle={{ borderColor: "#34D399" }}
+        textStyle={styles.checkboxText}
+      />
+
+      {/* Submit Button */}
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
-
-      {/* Camera Dialog */}
-      {isCameraDialogVisible && (
-        <CameraDialog
-          visible={isCameraDialogVisible}
-          onClose={() => setCameraDialogVisible(false)} // Close modal
-        />
-      )}
-    </View>
+    </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -216,8 +224,34 @@ const styles = StyleSheet.create({
     textDecorationLine: "none",
     color: "#4B5563",
   },
-  additionalOptions: {
-    marginBottom: 16,
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    backgroundColor: "#F9FAFB",
+    marginBottom: 8,
+  },
+  icon: {
+    marginRight: 8,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#374151",
+  },
+  additionalItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  additionalItem: {
+    fontSize: 14,
+    color: "#4B5563",
   },
   submitButton: {
     backgroundColor: "#34D399",
@@ -234,33 +268,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
   },
-
-  additionalOptions: {
-    flexDirection: "column",
-    gap: 16,
+  infoText: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 8,
   },
-  
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 10,
-    backgroundColor: "#F9FAFB",
-  },
-  
-  icon: {
-    marginRight: 8,
-  },
-  
-  textInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#374151",
-  },
-  
 });
 
 export default DeviceKYCForm;
