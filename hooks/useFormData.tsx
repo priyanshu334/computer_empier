@@ -17,15 +17,15 @@ interface FormData {
   estimateDetails: {
     repairCost: string;
     advancePaid: string;
-    pickupDate: Date | null;
-    pickupTime: Date | null;
+    pickupDate: string | null;
+    pickupTime: string | null;
   };
   repairPartnerDetails: {
     selectedRepairStation: string | null;
     selectedInHouseOption: string;
     selectedServiceCenterOption: string;
-    pickupDate: Date | null;
-    pickupTime: Date | null;
+    pickupDate: string | null;
+    pickupTime: string | null;
   };
 }
 
@@ -34,18 +34,21 @@ const useFormDataStorage = () => {
 
   // Load all data from AsyncStorage on component mount
   useEffect(() => {
-    const loadFormData = async () => {
-      try {
-        const data = await AsyncStorage.getItem(FORM_DATA_KEY);
-        if (data) {
-          setFormDataList(JSON.parse(data));
-        }
-      } catch (error) {
-        console.error("Failed to load form data from AsyncStorage", error);
-      }
-    };
     loadFormData();
   }, []);
+
+  // Fetch all stored form data
+  const loadFormData = async () => {
+    try {
+      const data = await AsyncStorage.getItem(FORM_DATA_KEY);
+      if (data) {
+        const parsedData: FormData[] = JSON.parse(data);
+        setFormDataList(parsedData);
+      }
+    } catch (error) {
+      console.error("Failed to load form data from AsyncStorage", error);
+    }
+  };
 
   // Save the entire list of form data back to AsyncStorage
   const saveAllFormData = async (dataList: FormData[]) => {
@@ -63,9 +66,18 @@ const useFormDataStorage = () => {
     await saveAllFormData(newDataList);
   };
 
-  // Read: Get a single form entry by ID
-  const getFormDataById = (id: string): FormData | undefined => {
-    return formDataList.find((item) => item.id === id);
+  // Read: Get a single form entry by ID (now async)
+  const getFormDataById = async (id: string): Promise<FormData | undefined> => {
+    try {
+      const data = await AsyncStorage.getItem(FORM_DATA_KEY);
+      if (data) {
+        const parsedData: FormData[] = JSON.parse(data);
+        return parsedData.find((item) => item.id === id);
+      }
+    } catch (error) {
+      console.error("Error fetching order data:", error);
+    }
+    return undefined;
   };
 
   // Update: Edit an existing form entry

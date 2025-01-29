@@ -37,7 +37,7 @@ const DialogComponent: React.FC<DialogComponentProps> = ({
     <View style={styles.container}>
       {/* Button to open dialog */}
       <TouchableOpacity style={styles.openButton} onPress={openDialog}>
-        <Text style={styles.openButtonText}>Open Dialog</Text>
+        <Text style={styles.openButtonText}>Set Lock Code</Text>
       </TouchableOpacity>
 
       {/* Dialog */}
@@ -58,24 +58,20 @@ const DialogComponent: React.FC<DialogComponentProps> = ({
               placeholderTextColor="#9CA3AF"
               value={lockCode}
               onChangeText={setLockCode}
-           // Hides input for sensitive data
+              secureTextEntry // Hides input for sensitive data
             />
-            if(handleAdd){
-                <Text>{lockCode}</Text>
-
-
-            }
           
             {/* Action Buttons */}
             <View style={styles.buttonRow}>
               {/* Add Button */}
+              <TouchableOpacity style={styles.cancelButton} onPress={closeDialog}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
                 <Text style={styles.buttonText}>Add</Text>
               </TouchableOpacity>
               {/* Cancel Button */}
-              <TouchableOpacity style={styles.cancelButton} onPress={closeDialog}>
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
+             
             </View>
           </View>
         </View>
@@ -89,15 +85,13 @@ export default DialogComponent;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F3F4F6",
   },
   openButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "teal",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
+    alignItems: "center",
   },
   openButtonText: {
     color: "#FFFFFF",

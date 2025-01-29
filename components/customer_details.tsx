@@ -9,18 +9,20 @@ import {
   Alert,
   FlatList,
 } from "react-native";
-import { loadCustomers, saveCustomers } from "../hooks/useCustomer"; // Import the utility functions
+import { loadCustomers, saveCustomers } from "@/hooks/useCustomer"; // Utility functions
 
 type CustomerDetailsProps = {
   onSearchChange: (searchTerm: string) => void;
   onAdd: (customerDetails: { name: string; number: string; address: string }) => void;
   onSelect: (customerDetails: { name: string; number: string; address: string } | null) => void;
+  initialCustomer?: { name: string; number: string; address: string } | null;
 };
 
 const CustomerDetails: React.FC<CustomerDetailsProps> = ({
   onSearchChange,
   onAdd,
   onSelect,
+  initialCustomer,
 }) => {
   const [isAddModalVisible, setAddModalVisible] = useState(false);
   const [isSelectModalVisible, setSelectModalVisible] = useState(false);
@@ -34,22 +36,20 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
     { name: string; number: string; address: string }[]
   >([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCustomer, setSelectedCustomer] = useState<
-    { name: string; number: string; address: string } | null
-  >(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(initialCustomer || null);
 
   useEffect(() => {
     const loadCustomerData = async () => {
       const customers = await loadCustomers();
       setStoredCustomers(customers);
-      setFilteredCustomers(customers); // Initialize with all customers
+      setFilteredCustomers(customers);
     };
     loadCustomerData();
-  }, [customerAddress, customerName, customerNumber]);
+  }, []);
 
   const handleSearchChange = (term: string) => {
     setSearchTerm(term);
-    onSearchChange(term); // Notify parent component
+    onSearchChange(term);
     const filtered = storedCustomers.filter((customer) =>
       customer.name.toLowerCase().includes(term.toLowerCase())
     );
@@ -71,62 +71,58 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
     const updatedCustomers = [...storedCustomers, newCustomer];
     saveCustomers(updatedCustomers);
 
+    setStoredCustomers(updatedCustomers);
+    setFilteredCustomers(updatedCustomers);
     setAddModalVisible(false);
     setCustomerName("");
     setCustomerNumber("");
     setCustomerAddress("");
 
     onAdd(newCustomer);
-   
   };
 
   const handleSelectCustomer = (customer: { name: string; number: string; address: string }) => {
     setSelectedCustomer(customer);
     setSelectModalVisible(false);
-    onSelect(customer); // Notify parent component about the selected customer
+    onSelect(customer);
   };
 
   return (
-    <View className="bg-white p-4 rounded-lg shadow-md my-10">
-      <Text className="text-lg font-semibold text-blue-600 mb-5">Customer Details</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Customer Details</Text>
 
       {selectedCustomer && (
-        <View className="mb-4">
-          <Text className="text-sm font-medium mb-2">Selected Customer</Text>
-          <View className="border border-gray-300 rounded-md p-2">
-            <Text className="text-base font-medium">{selectedCustomer.name}</Text>
-            <Text className="text-sm text-gray-600">Number: {selectedCustomer.number}</Text>
-            <Text className="text-sm text-gray-600">Address: {selectedCustomer.address}</Text>
+        <View style={styles.selectedCustomerContainer}>
+          <Text style={styles.subTitle}>Selected Customer</Text>
+          <View style={styles.customerBox}>
+            <Text style={styles.customerName}>{selectedCustomer.name}</Text>
+            <Text style={styles.customerInfo}>Number: {selectedCustomer.number}</Text>
+            <Text style={styles.customerInfo}>Address: {selectedCustomer.address}</Text>
           </View>
         </View>
       )}
 
-      <View className="mb-4">
-        <Text className="text-sm font-medium mb-2">Search Customer</Text>
+      <View style={styles.inputContainer}>
+        <Text style={styles.subTitle}>Search Customer</Text>
         <TextInput
-          className="border border-gray-300 rounded-md p-2"
+          style={styles.input}
           placeholder="Enter Name"
           value={searchTerm}
           onChangeText={handleSearchChange}
         />
       </View>
 
-      <View className="flex-row gap-4 justify-start items-center mb-4">
-        <TouchableOpacity
-          onPress={() => setSelectModalVisible(true)}
-          className="bg-emerald-700 p-4 rounded-md flex justify-center items-center"
-        >
-          <Text className="text-white font-semibold">Select</Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={() => setSelectModalVisible(true)} style={styles.button}>
+          <Text style={styles.buttonText}>Select</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => setAddModalVisible(true)}
-          className="bg-emerald-700 p-4 rounded-md flex justify-center items-center"
-        >
-          <Text className="text-white font-semibold">Add</Text>
+        <TouchableOpacity onPress={() => setAddModalVisible(true)} style={styles.button}>
+          <Text style={styles.buttonText}>Add</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Add Customer Modal */}
       <Modal
         visible={isAddModalVisible}
         transparent
@@ -135,57 +131,37 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text className="text-lg font-semibold text-blue-600 mb-4">Add Customer</Text>
+            <Text style={styles.modalTitle}>Add Customer</Text>
 
-            <View className="mb-4">
-              <Text className="text-sm font-medium mb-2">Customer Name</Text>
-              <TextInput
-                className="border border-gray-300 rounded-md p-2"
-                placeholder="Enter Name"
-                value={customerName}
-                onChangeText={setCustomerName}
-              />
+            <View style={styles.inputContainer}>
+              <Text style={styles.subTitle}>Customer Name</Text>
+              <TextInput style={styles.input} placeholder="Enter Name" value={customerName} onChangeText={setCustomerName} />
             </View>
 
-            <View className="mb-4">
-              <Text className="text-sm font-medium mb-2">Customer Number</Text>
-              <TextInput
-                className="border border-gray-300 rounded-md p-2"
-                placeholder="Enter Number"
-                keyboardType="numeric"
-                value={customerNumber}
-                onChangeText={setCustomerNumber}
-              />
+            <View style={styles.inputContainer}>
+              <Text style={styles.subTitle}>Customer Number</Text>
+              <TextInput style={styles.input} placeholder="Enter Number" keyboardType="numeric" value={customerNumber} onChangeText={setCustomerNumber} />
             </View>
 
-            <View className="mb-4">
-              <Text className="text-sm font-medium mb-2">Customer Address</Text>
-              <TextInput
-                className="border border-gray-300 rounded-md p-2"
-                placeholder="Enter Address"
-                value={customerAddress}
-                onChangeText={setCustomerAddress}
-              />
+            <View style={styles.inputContainer}>
+              <Text style={styles.subTitle}>Customer Address</Text>
+              <TextInput style={styles.input} placeholder="Enter Address" value={customerAddress} onChangeText={setCustomerAddress} />
             </View>
 
-            <View className="flex-row justify-between space-x-2">
-              <TouchableOpacity
-                onPress={handleAddCustomer}
-                className="bg-green-500 px-4 py-2 rounded-md"
-              >
-                <Text className="text-white font-semibold">Add Customer</Text>
+            <View style={styles.modalButtonContainer}>
+            <TouchableOpacity onPress={() => setAddModalVisible(false)} style={styles.cancelButton}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setAddModalVisible(false)}
-                className="bg-gray-300 px-4 py-2 rounded-md"
-              >
-                <Text className="text-gray-800 font-semibold">Cancel</Text>
+              <TouchableOpacity onPress={handleAddCustomer} style={styles.addButton}>
+                <Text style={styles.buttonText}>Add Customer</Text>
               </TouchableOpacity>
+             
             </View>
           </View>
         </View>
       </Modal>
 
+      {/* Select Customer Modal */}
       <Modal
         visible={isSelectModalVisible}
         transparent
@@ -194,31 +170,23 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text className="text-lg font-semibold text-blue-600 mb-4">Select Customer</Text>
+            <Text style={styles.modalTitle}>Select Customer</Text>
 
             <FlatList
               data={filteredCustomers}
               keyExtractor={(item, index) => `${item.name}-${index}`}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => handleSelectCustomer(item)}
-                  className="border-b border-gray-200 py-2"
-                >
-                  <Text className="text-base font-medium">{item.name}</Text>
-                  <Text className="text-sm text-gray-600">Number: {item.number}</Text>
-                  <Text className="text-sm text-gray-600">Address: {item.address}</Text>
+                <TouchableOpacity onPress={() => handleSelectCustomer(item)} style={styles.listItem}>
+                  <Text style={styles.customerName}>{item.name}</Text>
+                  <Text style={styles.customerInfo}>Number: {item.number}</Text>
+                  <Text style={styles.customerInfo}>Address: {item.address}</Text>
                 </TouchableOpacity>
               )}
-              ListEmptyComponent={
-                <Text className="text-gray-600 text-center py-4">No customers found.</Text>
-              }
+              ListEmptyComponent={<Text style={styles.noCustomers}>No customers found.</Text>}
             />
 
-            <TouchableOpacity
-              onPress={() => setSelectModalVisible(false)}
-              className="bg-gray-300 px-4 py-2 rounded-md mt-4"
-            >
-              <Text className="text-gray-800 font-semibold text-center">Close</Text>
+            <TouchableOpacity onPress={() => setSelectModalVisible(false)} style={styles.cancelButton}>
+              <Text style={styles.cancelButtonText}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -227,23 +195,59 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
   );
 };
 
+
+
+
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    width: "90%",
-    padding: 16,
+  container: {
     backgroundColor: "white",
+    padding: 16,
     borderRadius: 8,
     shadowColor: "#000",
-    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 3,
+  },
+  title: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 10 },
+  selectedCustomerContainer: {
+    marginBottom: 15,
+    padding: 10,
+  
+    borderColor: "#ddd",
+    borderRadius: 8,
+  },
+  subTitle: { fontSize: 14, fontWeight: "600", marginBottom: 5 },
+  customerBox: { borderWidth: 1, padding: 8, borderRadius: 4, borderColor: "#ccc" },
+  customerName: { fontSize: 14, fontWeight: "bold" },
+  customerInfo: { fontSize: 14, color: "#555" },
+  input: { borderWidth: 1, fontSize:16, padding: 12, borderRadius: 6, borderColor: "#ccc",    backgroundColor: "#f9f9f9", marginBottom: 10 },
+  inputContainer: {
+    marginBottom: 10,
+
+    
+  },
+  buttonContainer: { flexDirection: "row", gap: 10 },
+  button: {flex:1,maxWidth: "30%", backgroundColor: "#047857", alignItems: "center",  justifyContent: "center", padding: 10, borderRadius: 5 },
+  buttonText: { color: "white", fontWeight: "bold" },
+  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalContent: { width: "90%", backgroundColor: "white", padding: 16, borderRadius: 8 },
+  modalTitle: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 10 },
+  modalButtonContainer: { flexDirection: "row", justifyContent: "space-between" },
+  addButton: { backgroundColor: "#34D399", padding: 10, borderRadius: 5 },
+  cancelButton: { backgroundColor: "#ccc", padding: 10, borderRadius: 5, },
+  cancelButtonText: { color: "#333",  },
+  noCustomers: { textAlign: "center", marginVertical: 10 },
+  listItem: {
+    flexDirection: "column",    
+
+    alignItems: "flex-start",
+    padding: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
 });
+
+
 
 export default CustomerDetails;

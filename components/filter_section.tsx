@@ -2,27 +2,36 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useServiceCenters } from "../hooks/useServiceCenters"; // Custom hook to load Service Centers
 import { useServiceProviders } from "../hooks/useServiceProvider"; // Custom hook to load Service Providers
 
-const FilterComponent = () => {
-  const [serviceCenter, setServiceCenter] = useState<string | null>(null);
-  const [serviceProvider, setServiceProvider] = useState<string | null>(null);
+// Define types for props
+interface FilterComponentProps {
+  onApplyFilters: (filters: Filters) => void;
+  initialFilters: Filters;
+}
 
+interface Filters {
+  serviceCenter: string | null;
+  serviceProvider: string | null;
+  selectedDate: Date | null;
+}
+
+const FilterComponent = ({ onApplyFilters, initialFilters }: FilterComponentProps) => {
+  const [serviceCenter, setServiceCenter] = useState<string | null>(initialFilters.serviceCenter);
+  const [serviceProvider, setServiceProvider] = useState<string | null>(initialFilters.serviceProvider);
   const [serviceCenterOpen, setServiceCenterOpen] = useState(false);
   const [serviceProviderOpen, setServiceProviderOpen] = useState(false);
+  const { centers } = useServiceCenters();
+  const { providers } = useServiceProviders();
 
-  const { centers } = useServiceCenters(); // Using custom hook to get service centers
-  const { providers } = useServiceProviders(); // Using custom hook to get service providers
-
-  // Sample data for service providers
   const [serviceProviderItems, setServiceProviderItems] = useState([
     { label: "Provider 1", value: "provider1" },
     { label: "Provider 2", value: "provider2" },
   ]);
 
   useEffect(() => {
-    // You can modify this if you want to update service providers dynamically
     setServiceProviderItems(
       providers.map((provider) => ({
         label: provider.name,
@@ -31,16 +40,33 @@ const FilterComponent = () => {
     );
   }, [providers]);
 
+  // Date Picker State
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(initialFilters.selectedDate);
+
+  const showDatePicker = () => setDatePickerVisibility(true);
+  const hideDatePicker = () => setDatePickerVisibility(false);
+  const handleConfirm = (date: Date) => {
+    setSelectedDate(date);
+    hideDatePicker();
+  };
+
+  const handleApplyFilters = () => {
+    onApplyFilters({
+      serviceCenter,
+      serviceProvider,
+      selectedDate,
+    });
+  };
+
   return (
     <View style={styles.container}>
-      {/* Title */}
       <View style={styles.header}>
         <AntDesign name="filter" size={24} color="#047857" />
         <Text style={styles.headerText}>Filters</Text>
       </View>
 
       <View style={styles.filterBox}>
-        {/* Customer Name Input */}
         <TextInput
           placeholder="Enter customer name"
           placeholderTextColor="#9CA3AF"
@@ -53,7 +79,7 @@ const FilterComponent = () => {
             open={serviceCenterOpen}
             value={serviceCenter}
             items={centers.map((center) => ({
-              label: center.name, 
+              label: center.name,
               value: center.id
             }))}
             setOpen={setServiceCenterOpen}
@@ -86,30 +112,35 @@ const FilterComponent = () => {
 
         {/* Footer Section */}
         <View style={styles.footer}>
-          {/* Repair Date */}
-          <TouchableOpacity style={styles.dateButton}>
+          {/* Repair Date Picker Button */}
+          <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
             <AntDesign name="calendar" size={20} color="#9CA3AF" />
-            <Text style={styles.dateButtonText}>Select Date</Text>
+            <Text style={styles.dateButtonText}>
+              {selectedDate ? selectedDate.toDateString() : "Select Date"}
+            </Text>
           </TouchableOpacity>
 
           {/* Apply Filters Button */}
-          <TouchableOpacity style={styles.applyButton}>
+          <TouchableOpacity style={styles.applyButton} onPress={handleApplyFilters}>
             <Text style={styles.applyButtonText}>Apply</Text>
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirm}
+        onCancel={hideDatePicker}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 16,
-    backgroundColor: "#F0FDF4",
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
   },
   header: {
     flexDirection: "row",
@@ -123,47 +154,55 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   filterBox: {
+    marginTop: 16,
     padding: 16,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F9FAFB",
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
   },
   input: {
-    height: 42,
+    height: 40,
     borderWidth: 1,
     borderColor: "#D1D5DB",
     borderRadius: 8,
-    paddingHorizontal: 8,
-    backgroundColor: "#F0FDF4",
+    paddingLeft: 8,
     marginBottom: 16,
+    backgroundColor: "#FFFFFF",
   },
   dropdown: {
-    backgroundColor: "#F0FDF4",
+    backgroundColor: "#FFFFFF",
     borderColor: "#D1D5DB",
     height: 48,
     borderRadius: 8,
+    marginBottom: 16,
   },
   dropdownContainer: {
-    backgroundColor: "#F0FDF4",
     borderColor: "#D1D5DB",
-  },
-  dropdownPlaceholder: {
-    color: "#9CA3AF",
   },
   dropdownText: {
     fontSize: 14,
     color: "#374151",
   },
+  dropdownPlaceholder: {
+    color: "#9CA3AF",
+  },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 16,
   },
   dateButton: {
     flexDirection: "row",
     alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#F0FDF4",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
   },
   dateButtonText: {
     fontSize: 14,
@@ -171,9 +210,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   applyButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     backgroundColor: "#047857",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
     borderRadius: 8,
   },
   applyButtonText: {

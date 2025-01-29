@@ -14,21 +14,36 @@ type RepairPartnerProps = {
     pickupDate: Date | null;
     pickupTime: Date | null;
   }) => void;
+  initialData?: {
+    selectedRepairStation: string | null;
+    selectedInHouseOption: string;
+    selectedServiceCenterOption: string;
+    pickupDate: Date | null;
+    pickupTime: Date | null;
+  };
 };
 
-const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange }) => {
+const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData }) => {
   const { centers } = useServiceCenters(); // Use the custom hook to fetch centers
   const { providers } = useServiceProviders();
   const [selectedRepairStation, setSelectedRepairStation] = useState<
-    "in-house" | "service-center" | null
-  >(null);
-  const [selectedInHouseOption, setSelectedInHouseOption] = useState("");
-  const [selectedServiceCenterOption, setSelectedServiceCenterOption] = useState("");
-  const [pickupDate, setPickupDate] = useState<Date | null>(null);
-  const [pickupTime, setPickupTime] = useState<Date | null>(null);
+  "in-house" | "service-center" | null
+>(
+  (initialData?.selectedRepairStation as "in-house" | "service-center" | null) || null
+);
+
+  const [selectedInHouseOption, setSelectedInHouseOption] = useState(initialData?.selectedInHouseOption || "");
+  const [selectedServiceCenterOption, setSelectedServiceCenterOption] = useState(initialData?.selectedServiceCenterOption || "");
+  const [pickupDate, setPickupDate] = useState<Date | null>(initialData?.pickupDate || null);
+  const [pickupTime, setPickupTime] = useState<Date | null>(initialData?.pickupTime || null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  
+
+  useEffect(() => {
+    if (initialData) {
+      onDataChange(initialData);
+    }
+  }, [initialData]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || pickupDate;
@@ -55,7 +70,8 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange }) => {
       pickupTime: currentTime,
     });
   };
-const phoneNumber = selectedServiceCenterOption;
+
+  const phoneNumber = selectedServiceCenterOption;
   const messageText = "Hello! This is a test message.";
 
   // Handler for phone, message, and WhatsApp actions
@@ -135,8 +151,7 @@ const phoneNumber = selectedServiceCenterOption;
             size={24}
             color={selectedRepairStation === "service-center" ? "#2563EB" : "#4B5563"}
           />
-          <Text style={styles.optionText}>Serv
-            ice Center</Text>
+          <Text style={styles.optionText}>Service Center</Text>
         </TouchableOpacity>
       </View>
 
@@ -158,13 +173,13 @@ const phoneNumber = selectedServiceCenterOption;
             }}
             style={styles.picker}
           >
-                          {providers.map((provider) => (
-                <Picker.Item
-                  key={provider.id}
-                  label={provider.name}
-                  value={provider.id}
-                />
-              ))}
+            {providers.map((provider) => (
+              <Picker.Item
+                key={provider.id}
+                label={provider.name}
+                value={provider.id}
+              />
+            ))}
           </Picker>
 
           <View style={styles.iconsContainer}>
@@ -177,7 +192,7 @@ const phoneNumber = selectedServiceCenterOption;
             <TouchableOpacity onPress={handleWhatsAppPress}>
               <Ionicons name="logo-whatsapp" size={32} color="#4B5563" />
             </TouchableOpacity>
-          </View>``
+          </View>
         </View>
       )}
 
@@ -272,26 +287,25 @@ const phoneNumber = selectedServiceCenterOption;
   );
 };
 
-
-
-
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#fff",
     padding: 16,
     borderRadius: 8,
     marginBottom: 10,
+   
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
-    marginHorizontal: 10,
+    elevation: 4,
+    marginTop:10,
   },
   header: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
+    color: "#047857"
   },
   subHeader: {
     fontSize: 14,

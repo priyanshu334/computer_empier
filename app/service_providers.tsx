@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, FlatList } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useServiceProviders } from "../hooks/useServiceProvider"; // Import the custom hook
+import { router } from "expo-router";
 
 // Type definition for a service provider
 interface ServiceProvider {
@@ -51,7 +52,7 @@ export default function ServiceProviders() {
     <SafeAreaView className="flex-1 bg-[#F0FDF4]">
       {/* Header */}
       <View className="flex-row justify-start items-center bg-emerald-900 p-4 border-b-[1px]">
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/")}>
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
         <Text className="text-white text-lg font-bold absolute left-0 right-0 text-center">

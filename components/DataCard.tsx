@@ -4,31 +4,39 @@ import { AntDesign } from "@expo/vector-icons";
 
 interface DataCardProps {
   orderStatus: string;
+  orderModel:string,
   customerName: string;
   customerNumber: string;
   date: string;
   onEdit: () => void;
+  onView: () => void;
   onDelete: () => void;
 }
 
 const DataCard: React.FC<DataCardProps> = ({
   orderStatus,
+  orderModel,
   customerName,
   customerNumber,
   date,
   onEdit,
+  onView,
   onDelete,
 }) => {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>{customerName}</Text>
       <Text style={styles.subtitle}>Order Status: {orderStatus}</Text>
+      <Text style={styles.subtitle}>Order Model: {orderModel}</Text>
       <Text style={styles.subtitle}>Contact: {customerNumber}</Text>
       <Text style={styles.subtitle}>Pickup Date: {date}</Text>
 
       <View style={styles.actionButtons}>
         <TouchableOpacity onPress={onEdit} style={styles.editButton}>
           <AntDesign name="edit" size={18} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onView} style={styles.editButton}>
+          <AntDesign name="addfile" size={18} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
           <AntDesign name="delete" size={18} color="#fff" />

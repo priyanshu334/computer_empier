@@ -5,17 +5,27 @@ import { AntDesign } from "@expo/vector-icons";
 type ReceiverDetailsProps = {
   onNameChange: (name: string) => void;
   onDesignationChange: (designation: string) => void;
+  initialName?: string; // Add initial name prop
+  initialDesignation?: string; // Add initial designation prop
 };
 
 const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
   onNameChange,
   onDesignationChange,
+  initialName = "", // Default to empty string
+  initialDesignation = "", // Default to empty string
 }) => {
-  const [selectedDesignation, setSelectedDesignation] = useState<string>("");
+  const [selectedDesignation, setSelectedDesignation] = useState<string>(initialDesignation);
+  const [receiverName, setReceiverName] = useState<string>(initialName);
 
   const handleDesignationSelect = (designation: string) => {
     setSelectedDesignation(designation);
     onDesignationChange(designation);
+  };
+
+  const handleNameChange = (name: string) => {
+    setReceiverName(name);
+    onNameChange(name);
   };
 
   return (
@@ -30,7 +40,8 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
           <TextInput
             placeholder="Enter Receiver Name"
             style={styles.input}
-            onChangeText={onNameChange}
+            onChangeText={handleNameChange}
+            value={receiverName} // Set value from state
           />
         </View>
       </View>
@@ -79,20 +90,19 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
-    padding: 16,
+    padding: 10,
     borderRadius: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    marginHorizontal: 16,
-    marginVertical: 16,
+    marginBottom: 16,
   },
   title: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
+    color: "#047857",
     marginBottom: 16,
   },
   inputContainer: {
@@ -100,8 +110,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#666",
+
+    fontWeight: "600",
     marginBottom: 8,
   },
   inputWrapper: {

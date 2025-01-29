@@ -6,11 +6,14 @@ import {
   TouchableOpacity, 
   Linking, 
   Alert, 
-  StyleSheet 
+  StyleSheet,
+  ActivityIndicator 
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
+import { useLocalSearchParams, router } from "expo-router";
+// Import all your components
 import ReceiverDetails from "@/components/Receiver_Details";
 import CustomerDetails from "@/components/customer_details";
 import OrderDetails from "@/components/order_details";
@@ -18,11 +21,14 @@ import EstimateDetails from "@/components/estimate_details";
 import RepairPartner from "@/components/repair_partner";
 import DeviceKYCForm from "@/components/DeviceKycForm";
 import BottomBar from "@/components/bottom_bar";
-import { router } from "expo-router";
 import useFormDataStorage from "@/hooks/useFormData";
-import { v4 as uuidv4 } from 'uuid';
 
-const Add_orders = () => {
+const EditOrder = () => {
+  const { id } = useLocalSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [initialData, setInitialData] = useState<any>(null);
+
+  // All your existing state variables
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -68,67 +74,53 @@ const Add_orders = () => {
     pickupDate: null,
     pickupTime: null,
   });
- 
-  const handleFormSubmit = (formData:any) => {
-    console.log("Form Data received from DeviceKYCForm:", formData);
-    // Process or save the data here
-  };
-  // Customer details handlers
-  const handleAddCustomer = (customerDetails: { name: string; number: string; address: string }) => {
-    
-    Alert.alert("Success", "New customer added: " + customerDetails.name);
-  };
 
-  const handleSelectCustomer = (customer: { name: string; number: string; address: string } | null) => {
-    if (customer) {
-      setSelectedCustomer(customer);
-      alert("Selected Customer: " + customer.name);
-    } else {
-      setSelectedCustomer(null);
-      alert("No customer selected.");
-    }
-  };
+  const { getFormDataById, updateFormData } = useFormDataStorage();
 
-  // Order and Estimate handlers
-  const handleOrderDataChange = (data: {
-    deviceModel: string;
-    orderStatus: string;
-    problems: string[];
-  }) => {
-    setOrderDetails(data);
-  };
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        if (!id) {
+          Alert.alert("Error", "No order ID found in parameters");
+          return;
+        }
+        
+        const data = await getFormDataById(id as string);
+        console.log(data); // Debugging step: Check if data is fetched correctly
+        
+        if (data) {
+          // Populate all states with existing data
+          setName(data.name);
+          setDesignation(data.designation);
+          setSelectedCustomer(data.selectedCustomer);
+          setOrderDetails(data.orderDetails);
+          setEstimateDetails(data.estimateDetails);
+          setRepairPartnerDetails(data.repairPartnerDetails);
+          setIsAgreed(true);
+          setInitialData(data);
+        } else {
+          Alert.alert("Error", "Order not found");
+          router.back();
+        }
+      } catch (error) {
+        Alert.alert("Error", "Failed to load order data");
+        router.back();
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleEstimateDataChange = (data: {
-    repairCost: string;
-    advancePaid: string;
-    pickupDate: Date | null;
-    pickupTime: Date | null;
-  }) => {
-    setEstimateDetails(data);
-  };  const handleRepairPartnerDataChange = (data: {
-    selectedRepairStation: string | null;
-    selectedInHouseOption: string;
-    selectedServiceCenterOption: string;
-    pickupDate: Date | null;
-    pickupTime: Date | null;
-  }) => {
-    setRepairPartnerDetails(data);
-  };
-
-  const {
-    createFormData,
-  } = useFormDataStorage();
+    loadData();
+  }, [id]);
 
   const handleSubmit = async () => {
-    // Validate required fields
     if (!name || !designation || !orderDetails.deviceModel || !estimateDetails.repairCost || !estimateDetails.advancePaid) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
 
-    // Create new data object
-    const newData = {
-      id: uuidv4(), // Unique ID
+    const updatedData = {
+      id: id as string,
       name,
       designation,
       selectedCustomer,
@@ -138,40 +130,22 @@ const Add_orders = () => {
     };
 
     try {
-      await createFormData(newData);
-      Alert.alert("Success", "Order added successfully!");
-      resetForm();
-      router.push("/")
+      await updateFormData(id as string, updatedData);
+      Alert.alert("Success", "Order updated successfully!");
+      router.back();
     } catch (error) {
-      Alert.alert("Error", "Failed to save the order.");
+      Alert.alert("Error", "Failed to update the order.");
       console.error(error);
     }
   };
 
-  const resetForm = () => {
-    setName("");
-    setDesignation("");
-    setSelectedCustomer(null);
-    setOrderDetails({
-      deviceModel: "",
-      orderStatus: "Pending",
-      problems: [],
-    });
-    setEstimateDetails({
-      repairCost: "",
-      advancePaid: "",
-      pickupDate: null,
-      pickupTime: null,
-    });
-    setRepairPartnerDetails({
-      selectedRepairStation: null,
-      selectedInHouseOption: "",
-      selectedServiceCenterOption: "",
-      pickupDate: null,
-      pickupTime: null,
-    });
-    setIsAgreed(false);
-  };
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#047857" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -180,66 +154,80 @@ const Add_orders = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Records</Text>
+        <Text style={styles.headerTitle}>Edit Order</Text>
       </View>
 
-      {/* Main Scrollable Content */}
+      {/* Main Content */}
       <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
-        {/* Receiver Details */}
         <ReceiverDetails
-          onNameChange={(newName) => setName(newName)}
-          onDesignationChange={(newDesignation) => setDesignation(newDesignation)}
+          onNameChange={setName}
+          onDesignationChange={setDesignation}
+          initialName={initialData?.name}
+          initialDesignation={initialData?.designation}
         />
 
-        {/* Customer Details */}
         <CustomerDetails
-          onSearchChange={(newSearchTerm) => setSearchTerm(newSearchTerm)}
-          onAdd={handleAddCustomer}
-          onSelect={handleSelectCustomer}
+          onSearchChange={setSearchTerm}
+          onAdd={(customer) => {/* Add logic if needed */}}
+          onSelect={setSelectedCustomer}
+          initialCustomer={initialData?.selectedCustomer}
         />
 
-        {/* Order Details */}
-        <OrderDetails onDataChange={handleOrderDataChange} />
+        <OrderDetails 
+          onDataChange={setOrderDetails}
+          initialData={initialData?.orderDetails}
+        />
 
-        {/* Estimate Details */}
-        <EstimateDetails onDataChange={handleEstimateDataChange} />
+        <EstimateDetails 
+          onDataChange={setEstimateDetails}
+          initialData={initialData?.estimateDetails}
+        />
+    
 
-        {/* Device KYC and Repair Partner */}
-        <DeviceKYCForm onSubmit={handleFormSubmit} />
-        <RepairPartner onDataChange={handleRepairPartnerDataChange} />
+        <RepairPartner 
+          onDataChange={setRepairPartnerDetails}
+          initialData={initialData?.repairPartnerDetails}
+        />
       </ScrollView>
 
-      {/* Terms and Conditions Checkbox */}
+      {/* Terms and Submit */}
       <View style={styles.checkboxContainer}>
         <BouncyCheckbox
           size={25}
           fillColor="#34D399"
           text="I agree to the Terms and Conditions"
           isChecked={isAgreed}
-          onPress={(isSelected) => setIsAgreed(isSelected)}
+          onPress={setIsAgreed}
           iconStyle={{ borderColor: "#34D399", borderRadius: 4 }}
           textStyle={styles.checkboxText}
         />
       </View>
 
-      {/* Submit Button */}
       {isAgreed && (
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Submit</Text>
+          <Text style={styles.submitButtonText}>Update Order</Text>
         </TouchableOpacity>
       )}
 
-      {/* Bottom Bar */}
-     
+      <BottomBar
+        onPhonePress={() => Linking.openURL(`tel:1234567890`)}
+        onMessagePress={() => Linking.openURL(`sms:1234567890`)}
+        onWhatsAppPress={() => Linking.openURL(`whatsapp://send?phone=1234567890`)}
+        onPrintPress={() => {}}
+      />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1 ,
+    flex: 1,
     backgroundColor: "white",
-  
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     flexDirection: "row",
@@ -276,4 +264,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Add_orders;
+export default EditOrder;

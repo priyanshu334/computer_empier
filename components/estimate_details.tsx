@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   Platform,
   StyleSheet,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons"; // For calendar and clock icons
+import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 
 type EstimateDetailsProps = {
@@ -17,15 +17,31 @@ type EstimateDetailsProps = {
     pickupDate: Date | null;
     pickupTime: Date | null;
   }) => void;
+  initialData?: {
+    repairCost: string;
+    advancePaid: string;
+    pickupDate: Date | null;
+    pickupTime: Date | null;
+  };
 };
 
-const EstimateDetails: React.FC<EstimateDetailsProps> = ({ onDataChange }) => {
+const EstimateDetails: React.FC<EstimateDetailsProps> = ({ onDataChange, initialData }) => {
   const [repairCost, setRepairCost] = useState<string>("");
   const [advancePaid, setAdvancePaid] = useState<string>("");
   const [pickupDate, setPickupDate] = useState<Date | null>(null);
   const [pickupTime, setPickupTime] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
+
+  // Initialize form with initial data
+  useEffect(() => {
+    if (initialData) {
+      setRepairCost(initialData.repairCost);
+      setAdvancePaid(initialData.advancePaid);
+      setPickupDate(initialData.pickupDate ? new Date(initialData.pickupDate) : null);
+      setPickupTime(initialData.pickupTime ? new Date(initialData.pickupTime) : null);
+    }
+  }, [initialData]);
 
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     const currentDate = selectedDate || pickupDate;
@@ -109,7 +125,7 @@ const EstimateDetails: React.FC<EstimateDetailsProps> = ({ onDataChange }) => {
           onPress={() => setShowTimePicker(true)}
         >
           <Text style={styles.dateText}>
-            {pickupTime ? pickupTime.toLocaleTimeString() : "Select Time"}
+            {pickupTime ? pickupTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Select Time"}
           </Text>
           <Ionicons name="time-outline" size={24} color="#4B5563" />
         </TouchableOpacity>
@@ -135,12 +151,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    marginBottom: 16,
+    elevation: 3,
+    marginTop:10,
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
+    color: "#047857"
   },
   inputContainer: {
     marginBottom: 16,
@@ -156,6 +174,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
+    backgroundColor: "#f9f9f9",
   },
   datePicker: {
     flexDirection: "row",
