@@ -14,5 +14,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
-, "components/DeviceKycForm.jsx", "app/camera_screen.tsx", "components/model_details.tsx", "components/bar_code_scan.jsx", "app/edit_order/[id].tsx", "components/camera_component.jsx"  ]
+, "components/DeviceKycForm.jsx", "app/camera_screen.tsx", "components/model_details.tsx", "components/bar_code_scan.jsx", "app/edit_order/[id].tsx"  ]
 }

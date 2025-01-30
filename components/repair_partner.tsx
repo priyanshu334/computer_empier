@@ -71,10 +71,7 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
     });
   };
 
-  const phoneNumber =
-  selectedRepairStation === "service-center"
-    ? centers.find((center) => center.id === selectedServiceCenterOption)?.phone || ""
-    : providers.find((provider) => provider.id === selectedInHouseOption)?.phone || "";
+  const phoneNumber = selectedServiceCenterOption;
   const messageText = "Hello! This is a test message.";
 
   // Handler for phone, message, and WhatsApp actions
