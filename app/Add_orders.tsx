@@ -6,7 +6,8 @@ import {
   TouchableOpacity, 
   Linking, 
   Alert, 
-  StyleSheet 
+  StyleSheet, 
+  GestureResponderEvent
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
@@ -20,7 +21,8 @@ import DeviceKYCForm from "@/components/DeviceKycForm";
 import BottomBar from "@/components/bottom_bar";
 import { router } from "expo-router";
 import useFormDataStorage from "@/hooks/useFormData";
-import { v4 as uuidv4 } from 'uuid';
+import * as Crypto from 'expo-crypto';
+import { GestureHandlerEvent } from "react-native-reanimated/lib/typescript/hook";
 
 const Add_orders = () => {
   const [name, setName] = useState("");
@@ -68,6 +70,12 @@ const Add_orders = () => {
     pickupDate: null,
     pickupTime: null,
   });
+  const generateRandomId = (length: number = 16) => {
+    const randomBytes = Crypto.getRandomBytes(length);
+    return Array.from(randomBytes)
+      .map(byte => byte.toString(16).padStart(2, '0')) // Convert bytes to hex
+      .join('');
+  };
  
   const handleFormSubmit = (formData:any) => {
     console.log("Form Data received from DeviceKYCForm:", formData);
@@ -119,7 +127,8 @@ const Add_orders = () => {
     createFormData,
   } = useFormDataStorage();
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e:GestureResponderEvent) => {
+    e.preventDefault();
     console.log("Submitting data...");
   
     // Validate required fields
@@ -127,6 +136,7 @@ const Add_orders = () => {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
+    console.log("Selected Customer:", selectedCustomer);
   
     // Convert pickupDate and pickupTime to strings if they are Date objects
     const formattedEstimateDetails = {
@@ -134,27 +144,36 @@ const Add_orders = () => {
       pickupDate: estimateDetails.pickupDate ? estimateDetails.pickupDate.toISOString() : null,
       pickupTime: estimateDetails.pickupTime ? estimateDetails.pickupTime.toISOString() : null,
     };
+    console.log(formattedEstimateDetails)
   
     const formattedRepairPartnerDetails = {
       ...repairPartnerDetails,
       pickupDate: repairPartnerDetails.pickupDate ? repairPartnerDetails.pickupDate.toISOString() : null,
       pickupTime: repairPartnerDetails.pickupTime ? repairPartnerDetails.pickupTime.toISOString() : null,
     };
+    console.log(formattedRepairPartnerDetails)
   
     // Create new data object
-    const newData = {
-      id: uuidv4(), // Unique ID
-      name,
-      designation,
-      selectedCustomer,
-      orderDetails,
-      estimateDetails: formattedEstimateDetails,
-      repairPartnerDetails: formattedRepairPartnerDetails,
-    };
+    console.log(name)
+    console.log(designation)
+    console.log(selectedCustomer)
+    console.log(orderDetails)
+    console.log(estimateDetails)
+    console.log(repairPartnerDetails)
   
-    console.log("Form data to be saved:", newData);  // Log data before saving
+    
+    const id = generateRandomId();
   
     try {
+      const newData = {
+        id: id, // Unique ID
+        name,
+        designation,
+        selectedCustomer,
+        orderDetails,
+        estimateDetails: formattedEstimateDetails,
+        repairPartnerDetails: formattedRepairPartnerDetails,
+      };
       await createFormData(newData);
       console.log("Form data saved successfully");  // Log success
       Alert.alert("Success", "Order added successfully!");
@@ -166,7 +185,7 @@ const Add_orders = () => {
     }
   };
   
-  
+ 
 
   const resetForm = () => {
     setName("");

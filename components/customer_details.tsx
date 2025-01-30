@@ -163,39 +163,39 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 
       {/* Select Customer Modal */}
       <Modal
-        visible={isSelectModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Customer</Text>
+  visible={isSelectModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setSelectModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Select Customer</Text>
 
-            <FlatList
-              data={filteredCustomers}
-              keyExtractor={(item, index) => `${item.name}-${index}`}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleSelectCustomer(item)} style={styles.listItem}>
-                  <Text style={styles.customerName}>{item.name}</Text>
-                  <Text style={styles.customerInfo}>Number: {item.number}</Text>
-                  <Text style={styles.customerInfo}>Address: {item.address}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.noCustomers}>No customers found.</Text>}
-            />
+      <FlatList
+        data={filteredCustomers}
+        keyExtractor={(item, index) => `${item.name}-${index}`}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => handleSelectCustomer(item)} style={styles.listItem}>
+            <Text style={styles.customerName}>{item.name}</Text>
+            <Text style={styles.customerInfo}>Number: {item.number}</Text>
+            <Text style={styles.customerInfo}>Address: {item.address}</Text>
+          </TouchableOpacity>
+        )}
+        ListEmptyComponent={<Text style={styles.noCustomers}>No customers found.</Text>}
+        style={styles.flatList}
+      />
 
-            <TouchableOpacity onPress={() => setSelectModalVisible(false)} style={styles.cancelButton}>
-              <Text style={styles.cancelButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <TouchableOpacity onPress={() => setSelectModalVisible(false)} style={styles.cancelButton}>
+        <Text style={styles.cancelButtonText}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
     </View>
   );
 };
-
-
 
 
 const styles = StyleSheet.create({
@@ -213,7 +213,6 @@ const styles = StyleSheet.create({
   selectedCustomerContainer: {
     marginBottom: 15,
     padding: 10,
-  
     borderColor: "#ddd",
     borderRadius: 8,
   },
@@ -221,26 +220,40 @@ const styles = StyleSheet.create({
   customerBox: { borderWidth: 1, padding: 8, borderRadius: 4, borderColor: "#ccc" },
   customerName: { fontSize: 14, fontWeight: "bold" },
   customerInfo: { fontSize: 14, color: "#555" },
-  input: { borderWidth: 1, fontSize:16, padding: 12, borderRadius: 6, borderColor: "#ccc",    backgroundColor: "#f9f9f9", marginBottom: 10 },
+  input: { borderWidth: 1, fontSize: 16, padding: 12, borderRadius: 6, borderColor: "#ccc", backgroundColor: "#f9f9f9", marginBottom: 10 },
   inputContainer: {
     marginBottom: 10,
-
-    
   },
   buttonContainer: { flexDirection: "row", gap: 10 },
-  button: {flex:1,maxWidth: "30%", backgroundColor: "#047857", alignItems: "center",  justifyContent: "center", padding: 10, borderRadius: 5 },
+  button: { flex: 1, maxWidth: "30%", backgroundColor: "#047857", alignItems: "center", justifyContent: "center", padding: 10, borderRadius: 5 },
   buttonText: { color: "white", fontWeight: "bold" },
+  
+  // Updated styles for the modal
   modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  modalContent: { width: "90%", backgroundColor: "white", padding: 16, borderRadius: 8 },
+  
+  // Limit the modal height and make it scrollable
+  modalContent: { 
+    width: "90%", 
+    backgroundColor: "white", 
+    padding: 16, 
+    borderRadius: 8, 
+    maxHeight: 400, // Limit the modal height
+  },
   modalTitle: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 10 },
   modalButtonContainer: { flexDirection: "row", justifyContent: "space-between" },
   addButton: { backgroundColor: "#34D399", padding: 10, borderRadius: 5 },
-  cancelButton: { backgroundColor: "#ccc", padding: 10, borderRadius: 5, },
-  cancelButtonText: { color: "#333",  },
+  cancelButton: { backgroundColor: "#ccc", padding: 10, borderRadius: 5 },
+  cancelButtonText: { color: "#333" },
+
+  // Limit the FlatList height
+  flatList: {
+    maxHeight: 250, // Limit the height of the FlatList inside the modal
+    marginBottom: 10,
+  },
+
   noCustomers: { textAlign: "center", marginVertical: 10 },
   listItem: {
-    flexDirection: "column",    
-
+    flexDirection: "column",
     alignItems: "flex-start",
     padding: 2,
     borderBottomWidth: 1,
