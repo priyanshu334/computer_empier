@@ -15,9 +15,10 @@ import {
   View,
   ScrollView,
 } from "react-native";
+import { useCameraStorage } from "@/hooks/useCameraImagesStorage"; // Import the custom hook
 
 interface CameraPageProps {
-  onCapturePhoto: (index: number, photoUrl: string) => void; // Define the callback function
+  onCapturePhoto: (index: number, photoUrl: string) => void;
 }
 
 export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
@@ -25,10 +26,11 @@ export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
   const [flashMode, setFlashMode] = useState<FlashMode>("off");
   const [permission, requestPermission] = useCameraPermissions();
   const [showCameraIndex, setShowCameraIndex] = useState<number | null>(null);
-  const [capturedPhotos, setCapturedPhotos] = useState<(string | null)[]>([null, null, null, null]);
-  const [photoPaths, setPhotoPaths] = useState<(string | null)[]>([null, null, null, null]);
 
   const cameraRef = useRef<CameraView | null>(null);
+
+  // Use the custom hook to manage photos
+  const { photos, updatePhoto, clearPhotos } = useCameraStorage();
 
   if (!permission) {
     return <View />;
@@ -59,17 +61,12 @@ export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
         to: filePath,
       });
 
-      const updatedPhotos = [...capturedPhotos];
-      const updatedPaths = [...photoPaths];
-      updatedPhotos[index] = filePath;
-      updatedPaths[index] = filePath;
+      // Update the photos in AsyncStorage and call the parent callback
+      updatePhoto(index, filePath);
 
-      setCapturedPhotos(updatedPhotos);
-      setPhotoPaths(updatedPaths);
-
-      // Call the parent callback with the captured photo URL
+      // Pass the file path to the parent component via the callback
       if (onCapturePhoto) {
-        onCapturePhoto(index, filePath);
+        onCapturePhoto(index, filePath); // You are passing the path here
       }
 
       setShowCameraIndex(null);
@@ -94,12 +91,13 @@ export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
                 <Button
                   title={`Open Camera ${index + 1}`}
                   onPress={() => setShowCameraIndex(index)}
+                  color="#4CAF50"
                 />
                 <View style={styles.previewContainer}>
                   <Text style={styles.previewText}>Photo Preview:</Text>
-                  {capturedPhotos[index] ? (
+                  {photos[index] ? (
                     <Image
-                      source={{ uri: capturedPhotos[index]! }}
+                      source={{ uri: photos[index]! }}
                       style={styles.previewImage}
                     />
                   ) : (
@@ -107,9 +105,6 @@ export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
                       source={require("../assets/images/c2.png")}
                       style={styles.previewImage}
                     />
-                  )}
-                  {photoPaths[index] && (
-                    <Text style={styles.filePath}>File Path: {photoPaths[index]}</Text>
                   )}
                 </View>
               </View>
@@ -128,10 +123,10 @@ export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
               <Text style={styles.text}>Flip Camera</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.button}
+              style={styles.captureButton}
               onPress={() => capturePhoto(showCameraIndex)}
             >
-              <Text style={styles.text}>Take Picture</Text>
+              <Text style={styles.text}>Capture</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button} onPress={toggleFlashMode}>
               <Text style={styles.text}>Flash: {flashMode}</Text>
@@ -146,64 +141,74 @@ export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f8f8f8",
   },
   scrollContainer: {
     flexGrow: 1,
     justifyContent: "center",
+    paddingHorizontal: 10,
   },
   message: {
     textAlign: "center",
     paddingBottom: 10,
+    fontSize: 16,
+    color: "#333",
   },
   camera: {
     flex: 1,
   },
   buttonContainer: {
-    flex: 1,
     flexDirection: "row",
-    backgroundColor: "transparent",
-    justifyContent: "space-between",
-    margin: 20,
+    justifyContent: "space-around",
+    position: "absolute",
+    bottom: 40,
+    width: "100%",
   },
   button: {
-    alignSelf: "flex-end",
+    backgroundColor: "#4CAF50",
+    padding: 15,
+    borderRadius: 30,
+    width: "30%",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 10,
-    borderRadius: 10,
+  },
+  captureButton: {
+    backgroundColor: "#FF4081",
+    padding: 20,
+    borderRadius: 50,
+    width: "30%",
+    alignItems: "center",
   },
   text: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    color: "white",
+    color: "#fff",
   },
   gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
-    padding: 20,
+    justifyContent: "space-between",
+    padding: 10,
   },
   gridItem: {
-    width: "45%",
-    marginBottom: 20,
+    width: "48%",
+    marginBottom: 15,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 10,
+    elevation: 3,
   },
   previewContainer: {
-    padding: 10,
     alignItems: "center",
+    marginTop: 10,
   },
   previewText: {
-    fontSize: 16,
-    marginBottom: 10,
+    fontSize: 14,
+    marginBottom: 5,
+    color: "#333",
   },
   previewImage: {
-    width: 150,
-    height: 200,
+    width: "100%",
+    height: 150,
     borderRadius: 10,
-  },
-  filePath: {
-    marginTop: 10,
-    fontSize: 12,
-    color: "gray",
-    textAlign: "center",
   },
 });

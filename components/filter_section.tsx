@@ -1,44 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useServiceCenters } from "../hooks/useServiceCenters"; // Custom hook to load Service Centers
-import { useServiceProviders } from "../hooks/useServiceProvider"; // Custom hook to load Service Providers
-
-// Define types for props
-interface FilterComponentProps {
-  onApplyFilters: (filters: Filters) => void;
-  initialFilters: Filters;
-}
+import { useServiceCenters } from "../hooks/useServiceCenters";
+import { useServiceProviders } from "../hooks/useServiceProvider";
 
 interface Filters {
   serviceCenter: string | null;
   serviceProvider: string | null;
   selectedDate: Date | null;
+  customerSearch: string;
 }
 
-const FilterComponent = ({ onApplyFilters, initialFilters }: FilterComponentProps) => {
+interface FilterSectionProps {
+  onApplyFilters: (filters: Filters) => void;
+  initialFilters: Filters;
+}
+
+const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) => {
   const [serviceCenter, setServiceCenter] = useState<string | null>(initialFilters.serviceCenter);
   const [serviceProvider, setServiceProvider] = useState<string | null>(initialFilters.serviceProvider);
+  const [customerSearch, setCustomerSearch] = useState<string>(initialFilters.customerSearch || ""); // Default to empty string
   const [serviceCenterOpen, setServiceCenterOpen] = useState(false);
   const [serviceProviderOpen, setServiceProviderOpen] = useState(false);
   const { centers } = useServiceCenters();
   const { providers } = useServiceProviders();
 
-  const [serviceProviderItems, setServiceProviderItems] = useState([
-    { label: "Provider 1", value: "provider1" },
-    { label: "Provider 2", value: "provider2" },
-  ]);
-
-  useEffect(() => {
-    setServiceProviderItems(
-      providers.map((provider) => ({
-        label: provider.name,
-        value: provider.id,
-      }))
-    );
-  }, [providers]);
+  const [serviceProviderItems, setServiceProviderItems] = useState(
+    providers.map((provider) => ({
+      label: provider.name,
+      value: provider.id,
+    }))
+  );
 
   // Date Picker State
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -56,6 +50,7 @@ const FilterComponent = ({ onApplyFilters, initialFilters }: FilterComponentProp
       serviceCenter,
       serviceProvider,
       selectedDate,
+      customerSearch, // Always a string now
     });
   };
 
@@ -67,10 +62,13 @@ const FilterComponent = ({ onApplyFilters, initialFilters }: FilterComponentProp
       </View>
 
       <View style={styles.filterBox}>
+        {/* Customer Name Search */}
         <TextInput
           placeholder="Enter customer name"
           placeholderTextColor="#9CA3AF"
           style={styles.input}
+          value={customerSearch}
+          onChangeText={setCustomerSearch} // Updates customerSearch
         />
 
         {/* Service Center Dropdown */}
@@ -80,7 +78,7 @@ const FilterComponent = ({ onApplyFilters, initialFilters }: FilterComponentProp
             value={serviceCenter}
             items={centers.map((center) => ({
               label: center.name,
-              value: center.id
+              value: center.id,
             }))}
             setOpen={setServiceCenterOpen}
             setValue={setServiceCenter}
@@ -222,4 +220,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FilterComponent;
+export default FilterSection;

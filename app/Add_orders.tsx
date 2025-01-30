@@ -120,12 +120,27 @@ const Add_orders = () => {
   } = useFormDataStorage();
 
   const handleSubmit = async () => {
+    console.log("Submitting data...");
+  
     // Validate required fields
     if (!name || !designation || !orderDetails.deviceModel || !estimateDetails.repairCost || !estimateDetails.advancePaid) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
-
+  
+    // Convert pickupDate and pickupTime to strings if they are Date objects
+    const formattedEstimateDetails = {
+      ...estimateDetails,
+      pickupDate: estimateDetails.pickupDate ? estimateDetails.pickupDate.toISOString() : null,
+      pickupTime: estimateDetails.pickupTime ? estimateDetails.pickupTime.toISOString() : null,
+    };
+  
+    const formattedRepairPartnerDetails = {
+      ...repairPartnerDetails,
+      pickupDate: repairPartnerDetails.pickupDate ? repairPartnerDetails.pickupDate.toISOString() : null,
+      pickupTime: repairPartnerDetails.pickupTime ? repairPartnerDetails.pickupTime.toISOString() : null,
+    };
+  
     // Create new data object
     const newData = {
       id: uuidv4(), // Unique ID
@@ -133,20 +148,25 @@ const Add_orders = () => {
       designation,
       selectedCustomer,
       orderDetails,
-      estimateDetails,
-      repairPartnerDetails,
+      estimateDetails: formattedEstimateDetails,
+      repairPartnerDetails: formattedRepairPartnerDetails,
     };
-
+  
+    console.log("Form data to be saved:", newData);  // Log data before saving
+  
     try {
       await createFormData(newData);
+      console.log("Form data saved successfully");  // Log success
       Alert.alert("Success", "Order added successfully!");
       resetForm();
-      router.push("/")
+      router.push("/");
     } catch (error) {
+      console.error("Error saving form data:", error); // Log error
       Alert.alert("Error", "Failed to save the order.");
-      console.error(error);
     }
   };
+  
+  
 
   const resetForm = () => {
     setName("");

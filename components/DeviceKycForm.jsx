@@ -85,6 +85,8 @@ const DeviceKYCForm = ({ onSubmit }) => {
         </View>
       </TouchableOpacity>
 
+      
+
       {/* Lock Code Section */}
       <View style={styles.buttonGroup}>
         <DialogComponent onLockCodeSubmit={handleLockCodeSubmit} />

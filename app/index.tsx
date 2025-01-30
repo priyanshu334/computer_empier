@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   StyleSheet,
   ScrollView,
@@ -20,23 +20,44 @@ interface Filters {
   serviceCenter: string | null;
   serviceProvider: string | null;
   selectedDate: Date | null;
+  customerSearch?: string;  // Make customerSearch optional
 }
+
 
 export default function Index() {
   const router = useRouter();
   const { formDataList, deleteFormData } = useFormDataStorage();
-
-  // Initialize filteredData with unfiltered data
-  const [filteredData, setFilteredData] = useState(formDataList);
-  console.log(formDataList)
-  console.log("data is",filteredData)
-  const [data ,setData] = useState({formDataList})
-  console.log("hello data is ",data)
+  
+  // State for filters
   const [filters, setFilters] = useState<Filters>({
     serviceCenter: null,
     serviceProvider: null,
     selectedDate: null,
+    customerSearch: "",  // Add the customerSearch property here
   });
+  
+
+  // Memoized filtered data to prevent unnecessary re-renders
+  const filteredData = useMemo(() => {
+    return formDataList.filter((data) => {
+      const matchesServiceCenter = filters.serviceCenter
+        ? data.repairPartnerDetails.selectedServiceCenterOption === filters.serviceCenter
+        : true;
+
+      const matchesServiceProvider = filters.serviceProvider
+        ? data.repairPartnerDetails.selectedInHouseOption === filters.serviceProvider
+        : true;
+
+      // Handling null `pickupDate` gracefully
+      const matchesDate = filters.selectedDate
+        ? data.estimateDetails.pickupDate &&
+          new Date(data.estimateDetails.pickupDate).toDateString() ===
+            filters.selectedDate.toDateString()
+        : true;
+
+      return matchesServiceCenter && matchesServiceProvider && matchesDate;
+    });
+  }, [formDataList, filters]); // Runs only when dependencies change
 
   // Format the date, return 'N/A' if null
   const formatDate = (date: Date | null): string => {
@@ -49,51 +70,21 @@ export default function Index() {
   };
 
   // Edit the selected record
-  const handleEdit = async (id: string) => {
+  const handleEdit = (id: string) => {
     console.log(`item to edit: ${id}`);
     router.push(`./edit_order/${id}`);
-
   };
-  console.log("hello data is ",data)
 
-  const handleView = async (id: string) => {
-    console.log("hello data is ",id);
+  const handleView = (id: string) => {
+    console.log(`Viewing item: ${id}`);
     router.push(`./view_orders/${id}`);
-  }
+  };
 
   // Delete the selected record
   const handleDelete = async (id: string) => {
-    console.log(`item to delete : ${id}`)
+    console.log(`Deleting item: ${id}`);
     await deleteFormData(id);
-    setFilteredData(formDataList.filter((data) => data.id !== id));
   };
-
-  // Apply the filters to the data
-  const applyFilters = (newFilters: Filters) => {
-    setFilters(newFilters);
-  };
-
-  // Re-apply filters whenever formDataList or filters change
-  useEffect(() => {
-    const filtered = formDataList.filter((data) => {
-      const matchesServiceCenter = filters.serviceCenter
-        ? data.repairPartnerDetails.selectedServiceCenterOption === filters.serviceCenter
-        : true;
-      const matchesServiceProvider = filters.serviceProvider
-        ? data.repairPartnerDetails.selectedInHouseOption === filters.serviceProvider
-        : true;
-
-      // Handling null `selectedDate` gracefully
-      const matchesDate = filters.selectedDate
-        ? data.estimateDetails.pickupDate===
-          filters.selectedDate.toDateString()
-        : true;
-
-      return matchesServiceCenter && matchesServiceProvider && matchesDate;
-    });
-
-    setFilteredData(filtered); // Update state with filtered data
-  }, [formDataList, filters]); // Run whenever formDataList or filters change
 
   return (
     <SafeAreaView style={styles.container}>
@@ -121,7 +112,7 @@ export default function Index() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Filter Component */}
           <FilterComponent
-            onApplyFilters={applyFilters}
+            onApplyFilters={setFilters}
             initialFilters={filters}
           />
 
@@ -131,7 +122,6 @@ export default function Index() {
               <Text style={styles.emptyText}>No records found.</Text>
             </View>
           ) : (
-            console.log("hello data is ",filteredData),
             filteredData.map((data: any) => (
               <DataCard
                 key={data.id}
@@ -223,3 +213,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+

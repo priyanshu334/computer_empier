@@ -13,6 +13,8 @@ import { AntDesign } from "@expo/vector-icons";
 import { useLocalSearchParams, router } from "expo-router";
 import useFormDataStorage from "@/hooks/useFormData";
 import BottomBar from "@/components/bottom_bar";
+import * as Print from "expo-print";
+import { shareAsync } from "expo-sharing";
 
 const ViewOrders = () => {
   const { id } = useLocalSearchParams(); // Get order ID from navigation params
@@ -30,36 +32,138 @@ const ViewOrders = () => {
       );
     };
   
+    const generateMessageText = () => {
+      if (!orderData) return "No order details available.";
+    
+      return `
+    📌 *Computer Empire - Order Update* 📌
+    
+    👤 *Receiver:* ${orderData.name}
+    💼 *Designation:* ${orderData.designation}
+    
+    ${orderData.selectedCustomer ? `
+    👤 *Customer:* ${orderData.selectedCustomer.name}
+    📞 *Contact:* ${orderData.selectedCustomer.number}
+    📍 *Address:* ${orderData.selectedCustomer.address}
+    ` : ""}
+    
+    📱 *Device Model:* ${orderData.orderDetails.deviceModel}
+    📦 *Order Status:* ${orderData.orderDetails.orderStatus}
+    🔧 *Problems:* ${orderData.orderDetails.problems.join(", ")}
+    
+    💰 *Estimated Repair Cost:* ₹${orderData.estimateDetails.repairCost}
+    💵 *Advance Paid:* ₹${orderData.estimateDetails.advancePaid}
+    📅 *Pickup Date:* ${orderData.estimateDetails.pickupDate || "N/A"}
+    ⏰ *Pickup Time:* ${orderData.estimateDetails.pickupTime || "N/A"}
+    
+    🏢 *Repair Partner:* ${orderData.repairPartnerDetails.selectedRepairStation || "N/A"}
+    🏠 *In-House Option:* ${orderData.repairPartnerDetails.selectedInHouseOption || "N/A"}
+    🏬 *Service Center:* ${orderData.repairPartnerDetails.selectedServiceCenterOption || "N/A"}
+    📅 *Repair Pickup Date:* ${orderData.repairPartnerDetails.pickupDate || "N/A"}
+    ⏰ *Repair Pickup Time:* ${orderData.repairPartnerDetails.pickupTime || "N/A"}
+    
+    📞 For any queries, please contact us.
+      `.trim();
+    };
+    
     const handleMessagePress = () => {
-      const messageUrl = `sms:${phoneNumber}?body=${encodeURIComponent(
-        messageText
-      )}`;
+      const messageText = generateMessageText();
+      const messageUrl = `sms:${phoneNumber}?body=${encodeURIComponent(messageText)}`;
+      
       Linking.openURL(messageUrl).catch(() =>
         Alert.alert("Error", "Message app could not be opened.")
       );
     };
-  
+    
     const handleWhatsAppPress = () => {
-      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
-        messageText
-      )}`;
+      const messageText = generateMessageText();
+      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(messageText)}`;
+    
       Linking.openURL(whatsappUrl).catch(() =>
-        Alert.alert(
-          "Error",
-          "WhatsApp is not installed on this device or could not be opened."
-        )
+        Alert.alert("Error", "WhatsApp is not installed or could not be opened.")
       );
     };
-    const handleFormSubmit = (formData:any) => {
-      console.log("Form Data received from DeviceKYCForm:", formData);
-      // Process or save the data here
+    const handlePrintPress = async () => {
+      if (!orderData) {
+        Alert.alert("Error", "No order data available to print.");
+        return;
+      }
+    
+      const htmlContent = `
+        <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              h2 { color: #047857; text-align: center; }
+              .section { margin-bottom: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+              .title { font-weight: bold; margin-bottom: 5px; font-size: 16px; }
+              .text { margin-bottom: 5px; font-size: 14px; }
+              ul { padding-left: 20px; }
+            </style>
+          </head>
+          <body>
+            <h2>🖨 Computer Empire - Order Receipt</h2>
+    
+            <div class="section">
+              <div class="title">Receiver Details</div>
+              <div class="text">👤 Name: ${orderData.name}</div>
+              <div class="text">💼 Designation: ${orderData.designation}</div>
+            </div>
+    
+            ${orderData.selectedCustomer ? `
+              <div class="section">
+                <div class="title">Customer Details</div>
+                <div class="text">👤 Name: ${orderData.selectedCustomer.name}</div>
+                <div class="text">📞 Number: ${orderData.selectedCustomer.number}</div>
+                <div class="text">📍 Address: ${orderData.selectedCustomer.address}</div>
+              </div>
+            ` : ""}
+    
+            <div class="section">
+              <div class="title">Order Details</div>
+              <div class="text">📱 Device Model: ${orderData.orderDetails.deviceModel}</div>
+              <div class="text">📦 Order Status: ${orderData.orderDetails.orderStatus}</div>
+              <div class="text">🔧 Problems:</div>
+              <ul>
+                ${orderData.orderDetails.problems.map((problem: string) => `<li>${problem}</li>`).join("")}
+              </ul>
+            </div>
+    
+            <div class="section">
+              <div class="title">Estimate Details</div>
+              <div class="text">💰 Repair Cost: ₹${orderData.estimateDetails.repairCost}</div>
+              <div class="text">💵 Advance Paid: ₹${orderData.estimateDetails.advancePaid}</div>
+              <div class="text">📅 Pickup Date: ${orderData.estimateDetails.pickupDate || "N/A"}</div>
+              <div class="text">⏰ Pickup Time: ${orderData.estimateDetails.pickupTime || "N/A"}</div>
+            </div>
+    
+            <div class="section">
+              <div class="title">Repair Partner Details</div>
+              <div class="text">🏢 Repair Station: ${orderData.repairPartnerDetails.selectedRepairStation || "N/A"}</div>
+              <div class="text">🏠 In-House Option: ${orderData.repairPartnerDetails.selectedInHouseOption || "N/A"}</div>
+              <div class="text">🏬 Service Center: ${orderData.repairPartnerDetails.selectedServiceCenterOption || "N/A"}</div>
+              <div class="text">📅 Pickup Date: ${orderData.repairPartnerDetails.pickupDate || "N/A"}</div>
+              <div class="text">⏰ Pickup Time: ${orderData.repairPartnerDetails.pickupTime || "N/A"}</div>
+            </div>
+          </body>
+        </html>
+      `;
+    
+      try {
+        // Generate PDF from HTML
+        const { uri } = await Print.printToFileAsync({ html: htmlContent });
+    
+        console.log("📄 PDF saved at:", uri);
+    
+        // Share the generated PDF file
+        await shareAsync(uri, { mimeType: "application/pdf" });
+    
+      } catch (error) {
+        console.error("🛑 Print Error:", error);
+        Alert.alert("Error", "Failed to generate or share PDF.");
+      }
     };
-  
-  
-    const handlePrintPress = async  () => {
-      
    
-    };
   
    
 

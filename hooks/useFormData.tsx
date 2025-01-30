@@ -44,6 +44,9 @@ const useFormDataStorage = () => {
       if (data) {
         const parsedData: FormData[] = JSON.parse(data);
         setFormDataList(parsedData);
+        console.log("Loaded form data from AsyncStorage:", parsedData);
+      } else {
+        console.log("No form data found in AsyncStorage.");
       }
     } catch (error) {
       console.error("Failed to load form data from AsyncStorage", error);
@@ -53,6 +56,7 @@ const useFormDataStorage = () => {
   // Save the entire list of form data back to AsyncStorage
   const saveAllFormData = async (dataList: FormData[]) => {
     try {
+      console.log("Saving form data to AsyncStorage:", dataList); // Log before saving
       await AsyncStorage.setItem(FORM_DATA_KEY, JSON.stringify(dataList));
       setFormDataList(dataList); // Update local state
     } catch (error) {
@@ -62,8 +66,13 @@ const useFormDataStorage = () => {
 
   // Create: Add a new form entry
   const createFormData = async (data: FormData) => {
-    const newDataList = [...formDataList, data];
-    await saveAllFormData(newDataList);
+    try {
+      const newDataList = [...formDataList, data];
+      console.log("Adding new form data:", data); // Log the new data
+      await saveAllFormData(newDataList);
+    } catch (error) {
+      console.error("Failed to create form data:", error);
+    }
   };
 
   // Read: Get a single form entry by ID (now async)
@@ -72,32 +81,47 @@ const useFormDataStorage = () => {
       const data = await AsyncStorage.getItem(FORM_DATA_KEY);
       if (data) {
         const parsedData: FormData[] = JSON.parse(data);
-        return parsedData.find((item) => item.id === id);
+        const foundData = parsedData.find((item) => item.id === id);
+        console.log("Found form data by ID:", foundData);
+        return foundData;
+      } else {
+        console.log("No data found for the given ID:", id);
       }
     } catch (error) {
-      console.error("Error fetching order data:", error);
+      console.error("Error fetching form data by ID:", error);
     }
     return undefined;
   };
 
   // Update: Edit an existing form entry
   const updateFormData = async (id: string, updatedData: FormData) => {
-    const newDataList = formDataList.map((item) =>
-      item.id === id ? updatedData : item
-    );
-    await saveAllFormData(newDataList);
+    try {
+      const newDataList = formDataList.map((item) =>
+        item.id === id ? updatedData : item
+      );
+      console.log("Updating form data:", updatedData); // Log the updated data
+      await saveAllFormData(newDataList);
+    } catch (error) {
+      console.error("Failed to update form data:", error);
+    }
   };
 
   // Delete: Remove a form entry by ID
   const deleteFormData = async (id: string) => {
-    const newDataList = formDataList.filter((item) => item.id !== id);
-    await saveAllFormData(newDataList);
+    try {
+      const newDataList = formDataList.filter((item) => item.id !== id);
+      console.log("Deleting form data with ID:", id); // Log the ID being deleted
+      await saveAllFormData(newDataList);
+    } catch (error) {
+      console.error("Failed to delete form data:", error);
+    }
   };
 
   // Clear All: Delete all form data from AsyncStorage
   const clearAllFormData = async () => {
     try {
       await AsyncStorage.removeItem(FORM_DATA_KEY);
+      console.log("All form data cleared from AsyncStorage.");
       setFormDataList([]); // Clear local state
     } catch (error) {
       console.error("Failed to clear form data from AsyncStorage", error);
