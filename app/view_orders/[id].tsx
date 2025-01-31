@@ -9,12 +9,21 @@ import {
   Linking
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Image } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useLocalSearchParams, router } from "expo-router";
 import useFormDataStorage from "@/hooks/useFormData";
 import BottomBar from "@/components/bottom_bar";
 import * as Print from "expo-print";
 import { shareAsync } from "expo-sharing";
+import * as FileSystem from "expo-file-system";
+
+interface OrderData {
+  deviceKYC: {
+    cameraData: string[];
+  };
+  // Add other properties of orderData as needed
+}
 
 const ViewOrders = () => {
   const { id } = useLocalSearchParams(); // Get order ID from navigation params
@@ -186,6 +195,7 @@ const ViewOrders = () => {
       </SafeAreaView>
     );
   }
+  console.log(orderData)
 
  
 
@@ -250,6 +260,32 @@ const ViewOrders = () => {
           <Text style={styles.text}>📅 Pickup Date: {orderData.repairPartnerDetails.pickupDate || "N/A"}</Text>
           <Text style={styles.text}>⏰ Pickup Time: {orderData.repairPartnerDetails.pickupTime || "N/A"}</Text>
         </View>
+
+
+        <View style={styles.section}>
+  <Text style={styles.text}>🔌 Power Adapter: {orderData.deviceKYC.isPowerAdapterChecked ? "✅ Checked" : "❌ Not Checked"}</Text>
+  <Text style={styles.text}>⌨️ Keyboard: {orderData.deviceKYC.isKeyboardChecked ? "✅ Checked" : "❌ Not Checked"}</Text>
+  <Text style={styles.text}>🖱 Mouse: {orderData.deviceKYC.isMouseChecked ? "✅ Checked" : "❌ Not Checked"}</Text>
+  <Text style={styles.text}>🛡 Device on Warranty: {orderData.deviceKYC.isDeviceOnWarranty ? "✅ Yes" : "❌ No"}</Text>
+  <Text style={styles.text}>🎒 Other Accessories: {orderData.deviceKYC.otherAccessories || "N/A"}</Text>
+  <Text style={styles.text}>📝 Additional Details: {orderData.deviceKYC.additionalDetailsList.length > 0 ? orderData.deviceKYC.additionalDetailsList.join(", ") : "N/A"}</Text>
+  <Text style={styles.text}>🔒 Lock Code: {orderData.deviceKYC.lockCode || "N/A"}</Text>
+
+  {/* Load and display images */}
+  {orderData.deviceKYC.cameraData.length > 0 ? (
+    <ScrollView horizontal style={styles.imageContainer}>
+      {orderData.deviceKYC.cameraData.map((imageUri:any, index:any) => (
+        <Image
+          key={index}
+          source={{ uri:imageUri }}
+          style={styles.image}
+        />
+      ))}
+    </ScrollView>
+  ) : (
+    <Text style={styles.text}>📷 No images available.</Text>
+  )}
+</View>
       </ScrollView>
 
       {/* Bottom Buttons */}
@@ -299,9 +335,10 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 14,
     marginBottom: 4,
+    color: "#333",
   },
   listItem: {
-    fontSize: 14,
+    fontSize: 14, // Keep the font size consistent with other text
     marginLeft: 10,
     color: "#333",
   },
@@ -315,6 +352,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     minWidth: 120,
+    marginHorizontal: 8, // Adds spacing between buttons
   },
   deleteButton: {
     backgroundColor: "#DC2626",
@@ -326,9 +364,21 @@ const styles = StyleSheet.create({
   },
   errorText: {
     textAlign: "center",
-    fontSize: 16,
+    fontSize: 14, // Reduce to match the text style
     marginTop: 20,
+    color: "red",
+  },
+  imageContainer: {
+    flexDirection: "row",
+    marginTop: 10,
+  },
+  image: {
+    width: 100,
+    height: 100,
+    marginRight: 10,
+    borderRadius: 8,
   },
 });
+
 
 export default ViewOrders;

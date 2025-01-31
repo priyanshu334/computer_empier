@@ -163,34 +163,35 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 
       {/* Select Customer Modal */}
       <Modal
-        visible={isSelectModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Customer</Text>
+  visible={isSelectModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setSelectModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>Select Customer</Text>
 
-            <FlatList
-              data={filteredCustomers}
-              keyExtractor={(item, index) => `${item.name}-${index}`}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleSelectCustomer(item)} style={styles.listItem}>
-                  <Text style={styles.customerName}>{item.name}</Text>
-                  <Text style={styles.customerInfo}>Number: {item.number}</Text>
-                  <Text style={styles.customerInfo}>Address: {item.address}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.noCustomers}>No customers found.</Text>}
-            />
+      <FlatList
+        data={filteredCustomers}
+        keyExtractor={(item, index) => `${item.name}-${index}`}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => handleSelectCustomer(item)} style={styles.listItem}>
+            <Text style={styles.customerName}>{item.name}</Text>
+            <Text style={styles.customerInfo}>Number: {item.number}</Text>
+            <Text style={styles.customerInfo}>Address: {item.address}</Text>
+          </TouchableOpacity>
+        )}
+        ListEmptyComponent={<Text style={styles.noCustomers}>No customers found.</Text>}
+        style={styles.list}
+      />
 
-            <TouchableOpacity onPress={() => setSelectModalVisible(false)} style={styles.cancelButton}>
-              <Text style={styles.cancelButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <TouchableOpacity onPress={() => setSelectModalVisible(false)} style={styles.cancelButton}>
+        <Text style={styles.cancelButtonText}>Close</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
     </View>
   );
 };
@@ -210,44 +211,89 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   title: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 10 },
+  
   selectedCustomerContainer: {
     marginBottom: 15,
     padding: 10,
-  
     borderColor: "#ddd",
     borderRadius: 8,
   },
+  
   subTitle: { fontSize: 14, fontWeight: "600", marginBottom: 5 },
   customerBox: { borderWidth: 1, padding: 8, borderRadius: 4, borderColor: "#ccc" },
   customerName: { fontSize: 14, fontWeight: "bold" },
   customerInfo: { fontSize: 14, color: "#555" },
-  input: { borderWidth: 1, fontSize:16, padding: 12, borderRadius: 6, borderColor: "#ccc",    backgroundColor: "#f9f9f9", marginBottom: 10 },
-  inputContainer: {
-    marginBottom: 10,
-
-    
+  
+  input: { 
+    borderWidth: 1, 
+    fontSize: 16, 
+    padding: 12, 
+    borderRadius: 6, 
+    borderColor: "#ccc",    
+    backgroundColor: "#f9f9f9", 
+    marginBottom: 10 
   },
-  buttonContainer: { flexDirection: "row", gap: 10 },
-  button: {flex:1,maxWidth: "30%", backgroundColor: "#047857", alignItems: "center",  justifyContent: "center", padding: 10, borderRadius: 5 },
+  
+  inputContainer: { marginBottom: 10 },
+
+  buttonContainer: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    width: "100%" // Ensures proper spacing between buttons
+  },
+
+  button: {
+    flex: 1,
+    maxWidth: "30%", 
+    backgroundColor: "#047857", 
+    alignItems: "center",  
+    justifyContent: "center", 
+    padding: 10, 
+    borderRadius: 5 
+  },
+
   buttonText: { color: "white", fontWeight: "bold" },
-  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  modalContent: { width: "90%", backgroundColor: "white", padding: 16, borderRadius: 8 },
+
+  modalOverlay: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    backgroundColor: "rgba(0,0,0,0.5)" 
+  },
+
+  modalContent: { 
+    width: "80%", // Reduced from 90% to make it smaller
+    maxHeight: "60%", // Prevents the modal from taking up too much space
+    backgroundColor: "white", 
+    padding: 16, 
+    borderRadius: 8 
+  },
+
   modalTitle: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 10 },
-  modalButtonContainer: { flexDirection: "row", justifyContent: "space-between" },
+
+  modalButtonContainer: { flexDirection: "row", justifyContent: "space-between", width: "100%" },
+
   addButton: { backgroundColor: "#34D399", padding: 10, borderRadius: 5 },
-  cancelButton: { backgroundColor: "#ccc", padding: 10, borderRadius: 5, },
-  cancelButtonText: { color: "#333",  },
+
+  cancelButton: { backgroundColor: "#ccc", padding: 10, borderRadius: 5 },
+
+  cancelButtonText: { color: "#333" },
+
   noCustomers: { textAlign: "center", marginVertical: 10 },
+
   listItem: {
     flexDirection: "column",    
-
     alignItems: "flex-start",
-    padding: 2,
+    padding: 8, // Increased padding for better spacing
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
   },
-});
 
+  list: { 
+    maxHeight: 200, // Prevents the list from making the modal too big
+    width: "100%", 
+  },
+});
 
 
 export default CustomerDetails;

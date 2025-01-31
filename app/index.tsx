@@ -14,28 +14,27 @@ import { useRouter } from "expo-router";
 import useFormDataStorage from "../hooks/useFormData";
 import DataCard from "@/components/DataCard";
 import FilterComponent from "@/components/filter_section";
+import Photos from "@/components/photos";
 
 // Type definition for the filter structure
 interface Filters {
   serviceCenter: string | null;
   serviceProvider: string | null;
   selectedDate: Date | null;
-  customerSearch?: string;  // Make customerSearch optional
+  customerSearch: string;  // Ensuring it is always a string
 }
-
 
 export default function Index() {
   const router = useRouter();
   const { formDataList, deleteFormData } = useFormDataStorage();
-  
+
   // State for filters
   const [filters, setFilters] = useState<Filters>({
     serviceCenter: null,
     serviceProvider: null,
     selectedDate: null,
-    customerSearch: "",  // Add the customerSearch property here
+    customerSearch: "",  // Ensuring a default empty string
   });
-  
 
   // Memoized filtered data to prevent unnecessary re-renders
   const filteredData = useMemo(() => {
@@ -55,7 +54,12 @@ export default function Index() {
             filters.selectedDate.toDateString()
         : true;
 
-      return matchesServiceCenter && matchesServiceProvider && matchesDate;
+      const matchesCustomerSearch = filters.customerSearch
+        ? data.selectedCustomer?.name.toLowerCase().includes(filters.customerSearch.toLowerCase()) ||
+          data.selectedCustomer?.number.includes(filters.customerSearch)
+        : true;
+
+      return matchesServiceCenter && matchesServiceProvider && matchesDate && matchesCustomerSearch;
     });
   }, [formDataList, filters]); // Runs only when dependencies change
 
@@ -71,18 +75,18 @@ export default function Index() {
 
   // Edit the selected record
   const handleEdit = (id: string) => {
-    console.log(`item to edit: ${id}`);
+    // console.log(`item to edit: ${id}`);
     router.push(`./edit_order/${id}`);
   };
 
   const handleView = (id: string) => {
-    console.log(`Viewing item: ${id}`);
+    // console.log(`Viewing item: ${id}`);
     router.push(`./view_orders/${id}`);
   };
 
   // Delete the selected record
   const handleDelete = async (id: string) => {
-    console.log(`Deleting item: ${id}`);
+    // console.log(`Deleting item: ${id}`);
     await deleteFormData(id);
   };
 
@@ -136,14 +140,16 @@ export default function Index() {
               />
             ))
           )}
+          <Photos/>
         </ScrollView>
 
         {/* Bottom Navigation Bar */}
         <View style={styles.bottomBar}>
-          <TouchableOpacity onPress={() => router.push("/View_page")} style={styles.navButton}>
-            <AntDesign name="team" size={24} color="#fff" />
-            <Text style={styles.navText}>View Order</Text>
+        <TouchableOpacity onPress={() => router.push("/Images")} style={styles.navButton}>
+            <AntDesign name="home" size={24} color="#fff" />
+            <Text style={styles.navText}>Images</Text>
           </TouchableOpacity>
+          
           <TouchableOpacity onPress={() => router.push("/service")} style={styles.navButton}>
             <AntDesign name="home" size={24} color="#fff" />
             <Text style={styles.navText}>Centers</Text>
@@ -213,4 +219,3 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
-

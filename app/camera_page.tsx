@@ -15,7 +15,7 @@ import {
   View,
   ScrollView,
 } from "react-native";
-import { useCameraStorage } from "@/hooks/useCameraImagesStorage"; // Import the custom hook
+import { useCameraStorage } from "@/hooks/useCameraImagesStorage";  // Import the custom hook
 
 interface CameraPageProps {
   onCapturePhoto: (index: number, photoUrl: string) => void;
@@ -62,7 +62,9 @@ export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
       });
 
       // Update the photos in AsyncStorage and call the parent callback
-      updatePhoto(index, filePath);
+     await updatePhoto(index, filePath);
+      
+      console.log(filePath);
 
       // Pass the file path to the parent component via the callback
       if (onCapturePhoto) {
@@ -71,6 +73,7 @@ export default function CameraPage({ onCapturePhoto }: CameraPageProps) {
 
       setShowCameraIndex(null);
     }
+    
   }
 
   function toggleCameraFacing() {

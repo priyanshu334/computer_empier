@@ -21,12 +21,17 @@ import BottomBar from "@/components/bottom_bar";
 import { router } from "expo-router";
 import useFormDataStorage from "@/hooks/useFormData";
 import { v4 as uuidv4 } from 'uuid';
+import * as Crypto from 'expo-crypto';
+import { useCameraStorage } from "@/hooks/useCameraImagesStorage";
+
+
 
 const Add_orders = () => {
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAgreed, setIsAgreed] = useState(false);
+  const { clearPhotos } = useCameraStorage(); 
   const [selectedCustomer, setSelectedCustomer] = useState<{
     name: string;
     number: string;
@@ -68,11 +73,46 @@ const Add_orders = () => {
     pickupDate: null,
     pickupTime: null,
   });
+
+  const [deviceKYCDetails, setDeviceKYCDetails] = useState<{
+    isPowerAdapterChecked: boolean;
+    isKeyboardChecked: boolean;
+    isMouseChecked: boolean;
+    isDeviceOnWarranty: boolean;
+    warrantyExpiryDate: Date | null;
+    cameraData: any; // Adjust the type if you have a specific type for camera data
+    otherAccessories: string;
+    additionalDetailsList: string[];
+    lockCode: string;
+  }>({
+    isPowerAdapterChecked: false,
+    isKeyboardChecked: false,
+    isMouseChecked: false,
+    isDeviceOnWarranty: false,
+    warrantyExpiryDate: null,
+    cameraData: null,
+    otherAccessories: "",
+    additionalDetailsList: [],
+    lockCode: "",
+  });
+  
  
-  const handleFormSubmit = (formData:any) => {
-    console.log("Form Data received from DeviceKYCForm:", formData);
-    // Process or save the data here
+  const handleDeviceKYCDataChange = (data: {
+    isPowerAdapterChecked: boolean;
+    isKeyboardChecked: boolean;
+    isMouseChecked: boolean;
+    isDeviceOnWarranty: boolean;
+    warrantyExpiryDate: Date | null;
+    cameraData: any; // Adjust the type if you have a specific type for camera data
+    otherAccessories: string;
+    additionalDetailsList: string[];
+    lockCode: string;
+  }) => {
+    setDeviceKYCDetails(data);
   };
+  console.log(deviceKYCDetails);
+
+  
   // Customer details handlers
   const handleAddCustomer = (customerDetails: { name: string; number: string; address: string }) => {
     
@@ -115,6 +155,13 @@ const Add_orders = () => {
     setRepairPartnerDetails(data);
   };
 
+  const generateUniqueId = async (): Promise<string> => {
+    return await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      Date.now().toString() + Math.random().toString()
+    );
+  };
+
   const {
     createFormData,
   } = useFormDataStorage();
@@ -140,31 +187,45 @@ const Add_orders = () => {
       pickupDate: repairPartnerDetails.pickupDate ? repairPartnerDetails.pickupDate.toISOString() : null,
       pickupTime: repairPartnerDetails.pickupTime ? repairPartnerDetails.pickupTime.toISOString() : null,
     };
+    const formattedDeviceKYCDetails = {
+      ...deviceKYCDetails,
+      warrantyExpiryDate: deviceKYCDetails.warrantyExpiryDate
+        ? deviceKYCDetails.warrantyExpiryDate.toISOString()
+        : null,
+    };
+    console.log("device kyc data is ",formattedEstimateDetails)
   
     // Create new data object
+    const id = await generateUniqueId();
+    try {
+
     const newData = {
-      id: uuidv4(), // Unique ID
+      id: id, // Unique ID
       name,
       designation,
       selectedCustomer,
       orderDetails,
       estimateDetails: formattedEstimateDetails,
+      
       repairPartnerDetails: formattedRepairPartnerDetails,
+      deviceKYC:formattedDeviceKYCDetails,
     };
-  
-    console.log("Form data to be saved:", newData);  // Log data before saving
-  
-    try {
+    console.log("new data is ", newData)
+
       await createFormData(newData);
-      console.log("Form data saved successfully");  // Log success
+      
       Alert.alert("Success", "Order added successfully!");
+     
+      clearPhotos();
       resetForm();
+      
       router.push("/");
     } catch (error) {
       console.error("Error saving form data:", error); // Log error
       Alert.alert("Error", "Failed to save the order.");
     }
   };
+
   
   
 
@@ -190,6 +251,18 @@ const Add_orders = () => {
       pickupDate: null,
       pickupTime: null,
     });
+    setDeviceKYCDetails({
+      isPowerAdapterChecked: false,
+      isKeyboardChecked: false,
+      isMouseChecked: false,
+      isDeviceOnWarranty: false,
+      warrantyExpiryDate: null,
+      cameraData: null,
+      otherAccessories: "",
+      additionalDetailsList: [],
+      lockCode: "",
+    });
+   
     setIsAgreed(false);
   };
 
@@ -204,7 +277,7 @@ const Add_orders = () => {
       </View>
 
       {/* Main Scrollable Content */}
-      <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
         {/* Receiver Details */}
         <ReceiverDetails
           onNameChange={(newName) => setName(newName)}
@@ -225,7 +298,7 @@ const Add_orders = () => {
         <EstimateDetails onDataChange={handleEstimateDataChange} />
 
         {/* Device KYC and Repair Partner */}
-        <DeviceKYCForm onSubmit={handleFormSubmit} />
+        <DeviceKYCForm onSubmit={handleDeviceKYCDataChange} />
         <RepairPartner onDataChange={handleRepairPartnerDataChange} />
       </ScrollView>
 

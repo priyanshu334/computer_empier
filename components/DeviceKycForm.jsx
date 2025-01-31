@@ -13,6 +13,8 @@ import BouncyCheckbox from "react-native-bouncy-checkbox";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import DialogComponent from "./lock_code";
 import { useRouter } from "expo-router";
+import { useCameraStorage } from "@/hooks/useCameraImagesStorage";
+
 
 const DeviceKYCForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -21,24 +23,41 @@ const DeviceKYCForm = ({ onSubmit }) => {
     isMouseChecked: false,
     isDeviceOnWarranty: false,
     warrantyExpiryDate: null,
-    cameraData: null,
+    cameraData: [],
     otherAccessories: "",
     additionalDetailsList: [],
     lockCode: "",
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const { photos, updatePhoto } = useCameraStorage();
+  console.log(photos)
   const router = useRouter();
 
   // Update parent component when form data changes
   useEffect(() => {
     onSubmit?.(formData);
-  }, [formData, onSubmit]);
+  }, [formData, onSubmit,photos]);
+
+  useEffect(() => {
+    const loadImagesOnFocus = () => updateFormData("cameraData", photos);
+
+    const focusListener = router.events?.on("focus", loadImagesOnFocus);
+
+    return () => focusListener?.remove?.(); // Cleanup the listener
+  }, [photos, router.events]);
+
+
 
   const updateFormData = (key, value) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    setFormData((prev) => {
+      if (Array.isArray(prev[key]) && Array.isArray(value)) {
+        return { ...prev, [key]: [...prev[key], ...value] }; // Merge arrays
+      }
+      return { ...prev, [key]: value };
+    });
   };
-
+  
   const handleLockCodeSubmit = (code) => {
     updateFormData("lockCode", code);
   };

@@ -20,6 +20,7 @@ import EstimateDetails from "@/components/estimate_details";
 import RepairPartner from "@/components/repair_partner";
 import BottomBar from "@/components/bottom_bar";
 import useFormDataStorage from "@/hooks/useFormData";
+import DeviceKYCForm from "@/components/DeviceKycForm";
 
 // Define types for the component states
 interface Customer {
@@ -58,6 +59,46 @@ interface OrderData {
   estimateDetails: EstimateDetails;
   repairPartnerDetails: RepairPartnerDetails;
 }
+interface FormData {
+  id: string;
+  name: string;
+  designation: string;
+  selectedCustomer: {
+    name: string;
+    number: string;
+    address: string;
+  } | null;
+  orderDetails: {
+    deviceModel: string;
+    orderStatus: string;
+    problems: string[];
+  };
+  estimateDetails: {
+    repairCost: string;
+    advancePaid: string;
+    pickupDate: string | null;
+    pickupTime: string | null;
+  };
+  repairPartnerDetails: {
+    selectedRepairStation: string | null;
+    selectedInHouseOption: string;
+    selectedServiceCenterOption: string;
+    pickupDate: string | null;
+    pickupTime: string | null;
+  };
+  deviceKYC: {
+    isPowerAdapterChecked: boolean;
+    isKeyboardChecked: boolean;
+    isMouseChecked: boolean;
+    isDeviceOnWarranty: boolean;
+    warrantyExpiryDate: string | null;
+    cameraData: any;
+    otherAccessories: string;
+    additionalDetailsList: string[];
+    lockCode: string;
+  };
+}
+
 
 const EditOrder: React.FC = () => {
   const { id } = useLocalSearchParams();
@@ -91,9 +132,20 @@ const EditOrder: React.FC = () => {
     pickupDate: null,
     pickupTime: null,
   });
+  const [deviceKYCDetails, setDeviceKYCDetails] = useState<FormData["deviceKYC"]>({
+    isPowerAdapterChecked: false,
+    isKeyboardChecked: false,
+    isMouseChecked: false,
+    isDeviceOnWarranty: false,
+    warrantyExpiryDate: null,
+    cameraData: null,
+    otherAccessories: "",
+    additionalDetailsList: [],
+    lockCode: "",
+  });
 
-  const { getFormDataById, updateFormData } = useFormDataStorage();
-
+  const {FormData, getFormDataById, updateFormData } = useFormDataStorage();
+  
   
   useEffect(() => {
     const loadData = async () => {
@@ -108,6 +160,8 @@ const EditOrder: React.FC = () => {
         if (!data) {
           Alert.alert("Error", "Order not found.");
           router.back();
+
+
           return;
         }
   
@@ -137,20 +191,35 @@ const EditOrder: React.FC = () => {
       return;
     }
 
-    const updatedData: OrderData = {
+    const updatedData:FormData  = {
       id: id as string,
       name,
       designation,
       selectedCustomer,
       orderDetails,
-      estimateDetails,
-      repairPartnerDetails,
+      estimateDetails: {
+        ...estimateDetails,
+        pickupDate: estimateDetails.pickupDate ? new Date(estimateDetails.pickupDate).toISOString() : null,
+        pickupTime: estimateDetails.pickupTime ? new Date(estimateDetails.pickupTime).toISOString() : null,
+      },
+      repairPartnerDetails: {
+        ...repairPartnerDetails,
+        pickupDate: repairPartnerDetails.pickupDate ? new Date(repairPartnerDetails.pickupDate).toISOString() : null,
+        pickupTime: repairPartnerDetails.pickupTime ? new Date(repairPartnerDetails.pickupTime).toISOString() : null,
+      },
+      deviceKYC: {
+        ...deviceKYCDetails,
+        warrantyExpiryDate: deviceKYCDetails.warrantyExpiryDate
+          ? new Date(deviceKYCDetails.warrantyExpiryDate).toISOString()
+          : null,
+      },
+
     };
 
     try {
       await updateFormData(id as string, updatedData);
       Alert.alert("Success", "Order updated successfully!");
-      router.back();
+      router.push("/");
     } catch (error) {
       console.error("Error updating order:", error);
       Alert.alert("Error", "Failed to update the order.");
@@ -190,6 +259,7 @@ const EditOrder: React.FC = () => {
 
         <OrderDetails onDataChange={setOrderDetails} initialData={orderDetails} />
         <EstimateDetails onDataChange={setEstimateDetails} initialData={estimateDetails} />
+        <DeviceKYCForm onSubmit={setDeviceKYCDetails} />
         <RepairPartner onDataChange={setRepairPartnerDetails} initialData={repairPartnerDetails} />
       </ScrollView>
 
