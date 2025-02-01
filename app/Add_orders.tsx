@@ -216,7 +216,7 @@ const Add_orders = () => {
       
       Alert.alert("Success", "Order added successfully!");
      
-      clearPhotos();
+     
       resetForm();
       
       router.push("/");

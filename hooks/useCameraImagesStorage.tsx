@@ -8,12 +8,12 @@ export function useCameraStorage() {
 
   useEffect(() => {
     loadPhotos();
-  }, []);
+  }, []); // ✅ Load only once on mount
 
   const savePhotos = async (updatedPhotos: (string | null)[]) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPhotos));
-      setPhotos(updatedPhotos);
+      setPhotos(updatedPhotos); // ✅ Update state after successful AsyncStorage update
     } catch (error) {
       console.error("Error saving photos to AsyncStorage", error);
     }
@@ -31,15 +31,18 @@ export function useCameraStorage() {
   };
 
   const updatePhoto = async (index: number, photoUrl: string) => {
-    const updatedPhotos = [...photos];
-    updatedPhotos[index] = photoUrl;
-    await savePhotos(updatedPhotos);
+    setPhotos((prevPhotos) => {
+      const updatedPhotos = [...prevPhotos];
+      updatedPhotos[index] = photoUrl;
+      savePhotos(updatedPhotos);
+      return updatedPhotos; // ✅ Ensures state updates immediately
+    });
   };
 
   const clearPhotos = async () => {
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
-      setPhotos([null, null, null, null]);
+      setPhotos([null, null, null, null]); // ✅ Clear state as well
     } catch (error) {
       console.error("Error clearing photos from AsyncStorage", error);
     }

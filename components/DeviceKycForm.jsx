@@ -14,6 +14,8 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import DialogComponent from "./lock_code";
 import { useRouter } from "expo-router";
 import { useCameraStorage } from "@/hooks/useCameraImagesStorage";
+import CameraComponent from "./camera_compo";
+import CameraPage from "@/app/camera_page";
 
 
 const DeviceKYCForm = ({ onSubmit }) => {
@@ -37,17 +39,12 @@ const DeviceKYCForm = ({ onSubmit }) => {
   // Update parent component when form data changes
   useEffect(() => {
     onSubmit?.(formData);
-  }, [formData, onSubmit,photos]);
+  }, [formData, onSubmit]);
 
   useEffect(() => {
-    const loadImagesOnFocus = () => updateFormData("cameraData", photos);
-
-    const focusListener = router.events?.on("focus", loadImagesOnFocus);
-
-    return () => focusListener?.remove?.(); // Cleanup the listener
-  }, [photos, router.events]);
-
-
+    updateFormData("cameraData", photos);
+  }, [photos])
+  console.log(photos)
 
   const updateFormData = (key, value) => {
     setFormData((prev) => {
@@ -96,14 +93,24 @@ const DeviceKYCForm = ({ onSubmit }) => {
 
       {/* Camera Button */}
       <TouchableOpacity
-        style={{flex:1, alignItems:"center", backgroundColor:"teal", color:"white", fontWeight:"bold", padding: 15, borderRadius: 10, marginTop: 10,marginBottom:10 }}
-        onPress={() => router.push("/camera_page")}
-      >
-        <View style={{}}>
-          <Text style={{color:"white",fontSize:16 ,fontWeight:"bold"}}>Device Images</Text>
-        </View>
-      </TouchableOpacity>
+  style={{
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "teal",
+    padding: 15,
+    borderRadius: 10,
+    gap: 8,
+  }}
+  onPress={() => router.push("/camera_page")}
+>
+  <View>
+    <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
+      Device Images
+    </Text>
+  </View>
+</TouchableOpacity>
 
+    
       
 
       {/* Lock Code Section */}
@@ -230,10 +237,10 @@ const DeviceKYCForm = ({ onSubmit }) => {
     </ScrollView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
-    flex:1,
-  
+    flex: 1,
     backgroundColor: "white",
     padding: 16,
     borderRadius: 8,
@@ -242,47 +249,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    marginTop:10,
+    gap: 10,
   },
   header: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 16,
-    color: "#047857"
+    color: "#047857",
   },
   buttonGroup: {
-  
-    marginBottom: 16,
-   
-      
+    flexDirection: "column",
+    gap: 8,
   },
   button: {
     flexDirection: "row",
     borderRadius: 8,
     padding: 12,
     backgroundColor: "teal",
-    marginBottom: 8,
   },
   buttonContent: {
-    flexDirection:"row",
+    flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
   buttonText: {
-    color: "#FFFFFF",
-    marginLeft: 8,
+    color: "#FFFFFF", 
     fontSize: 16,
-    fontWeight:"bold"
+    fontWeight: "bold",
   },
   label: {
     fontSize: 14,
     fontWeight: "500",
-    marginBottom: 8,
   },
   checkboxGroup: {
     flex: 1,
     flexDirection: "column",
-    gap:8,
-    marginBottom: 16,
+    gap: 8,
   },
   checkboxText: {
     textDecorationLine: "none",
@@ -297,10 +298,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     backgroundColor: "#F9FAFB",
-    marginBottom: 8,
-  },
-  icon: {
-    marginRight: 8,
+    gap: 8,
   },
   textInput: {
     flex: 1,
@@ -312,7 +310,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 8,
-    marginBottom: 8,
+    gap: 8,
   },
   additionalItem: {
     fontSize: 14,
@@ -329,7 +327,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   submitButtonText: {
-
     fontSize: 16,
     fontWeight: "bold",
     color: "white",
@@ -337,8 +334,8 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     color: "#6B7280",
-    marginBottom: 8,
   },
 });
+
 
 export default DeviceKYCForm;
