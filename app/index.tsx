@@ -140,15 +140,12 @@ export default function Index() {
               />
             ))
           )}
-          <Photos/>
+    
         </ScrollView>
 
         {/* Bottom Navigation Bar */}
         <View style={styles.bottomBar}>
-        <TouchableOpacity onPress={() => router.push("/Images")} style={styles.navButton}>
-            <AntDesign name="home" size={24} color="#fff" />
-            <Text style={styles.navText}>Images</Text>
-          </TouchableOpacity>
+     
           
           <TouchableOpacity onPress={() => router.push("/service")} style={styles.navButton}>
             <AntDesign name="home" size={24} color="#fff" />
