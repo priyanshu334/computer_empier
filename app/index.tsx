@@ -140,7 +140,7 @@ export default function Index() {
               />
             ))
           )}
-    
+          <Photos/>
         </ScrollView>
 
         {/* Bottom Navigation Bar */}

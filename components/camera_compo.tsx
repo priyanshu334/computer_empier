@@ -26,7 +26,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   async function capturePhoto() {
     if (cameraRef) {
       const photo = await cameraRef.takePictureAsync();
-      const filePath = ${FileSystem.documentDirectory}photo_${Date.now()}.jpg;
+      const filePath = `${FileSystem.documentDirectory}photo_${Date.now()}.jpg`;
 
       // Save the captured image to the file system
       await FileSystem.moveAsync({ from: photo.uri, to: filePath });

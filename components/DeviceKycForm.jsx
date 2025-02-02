@@ -7,7 +7,7 @@ import {
   TextInput,
   ScrollView,
   Platform,
-  Button,
+  Image
 } from "react-native";
 import { FontAwesome, MaterialIcons, AntDesign } from "@expo/vector-icons";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -17,6 +17,7 @@ import { useRouter } from "expo-router";
 import { useCameraStorage } from "@/hooks/useCameraImagesStorage";
 import CameraComponent from "./camera_compo";
 import CameraPage from "@/app/camera_page";
+import { Button } from "react-native";
 
 
 const DeviceKYCForm = ({ onSubmit }) => {
@@ -34,15 +35,6 @@ const DeviceKYCForm = ({ onSubmit }) => {
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { photos, updatePhoto } = useCameraStorage();
-  const [capturedPhotos, setCapturedPhotos] = useState([null, null, null, null]);
-
-  const [showCameraIndex, setShowCameraIndex] = useState(null);
-
-  function handlePhotoCaptured(photoPath) {
-    const updatedPhotos = [...capturedPhotos];
-    updatedPhotos[showCameraIndex] = photoPath;
-    setCapturedPhotos(updatedPhotos);
-  }
   console.log(photos)
   const router = useRouter();
 
@@ -102,38 +94,32 @@ const DeviceKYCForm = ({ onSubmit }) => {
       <Text style={styles.header}>Device KYC Form</Text>
 
       {/* Camera Button */}
-     
-      {/* <View style={styles.container}>
-      {showCameraIndex === null ? (
-        <View style={styles.gridContainer}>
-          {[0, 1, 2, 3].map((index) => (
-            <View key={index} style={styles.gridItem}>
-              <Button
-                title={`Open Camera ${index + 1}`}
-                onPress={() => setShowCameraIndex(index)}
-              />
-              <View style={styles.previewContainer}>
-                <Text style={styles.previewText}>Photo Preview:</Text>
-                {capturedPhotos[index] ? (
-                  <Image
-                    source={{ uri: capturedPhotos[index]}}
-                    style={styles.previewImage}
-                  />
-                ) : (
-                  <Text>No Image Captured</Text>
-                )}
-              </View>
-            </View>
-          ))}
-        </View>
-      ) : (
-        <CameraComponent
-          onPhotoCaptured={handlePhotoCaptured}
-          onClose={() => setShowCameraIndex(null)}
-        />
-      )}
-    </View> */}
+      <TouchableOpacity
+  style={{
+    flex: 1,
+    alignItems: "center",
+    backgroundColor: "teal",
+    padding: 15,
+    borderRadius: 10,
+    gap: 8,
+  }}
+  onPress={() => router.push("/camera_page")}
+>
+  <View>
+    <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
+      Device Images
+    </Text>
+  </View>
+</TouchableOpacity>
 
+
+
+
+
+
+    
+      
+  
       {/* Lock Code Section */}
       <View style={styles.buttonGroup}>
         <DialogComponent onLockCodeSubmit={handleLockCodeSubmit} />
