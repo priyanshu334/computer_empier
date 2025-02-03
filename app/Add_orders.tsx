@@ -298,7 +298,7 @@ const Add_orders = () => {
         <EstimateDetails onDataChange={handleEstimateDataChange} />
 
         {/* Device KYC and Repair Partner */}
-        <DeviceKYCForm onSubmit={handleDeviceKYCDataChange} />
+        <DeviceKYCForm onDataChange={handleDeviceKYCDataChange} />
         <RepairPartner onDataChange={handleRepairPartnerDataChange} />
       </ScrollView>
 

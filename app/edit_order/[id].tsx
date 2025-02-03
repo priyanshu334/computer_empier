@@ -50,6 +50,18 @@ interface RepairPartnerDetails {
   pickupTime: Date | null;
 }
 
+interface DeviceKYCFormData {
+  isPowerAdapterChecked: boolean;
+  isKeyboardChecked: boolean;
+  isMouseChecked: boolean;
+  isDeviceOnWarranty: boolean;
+  warrantyExpiryDate: string | null;
+  cameraData: string[]; // Assuming cameraData stores image URLs or file paths
+  otherAccessories: string;
+  additionalDetailsList: string[];
+  lockCode: string;
+}
+
 interface OrderData {
   id: string;
   name: string;
@@ -58,6 +70,7 @@ interface OrderData {
   orderDetails: OrderDetails;
   estimateDetails: EstimateDetails;
   repairPartnerDetails: RepairPartnerDetails;
+  deviceKYCDetails: DeviceKYCFormData;
 }
 interface FormData {
   id: string;
@@ -132,17 +145,19 @@ const EditOrder: React.FC = () => {
     pickupDate: null,
     pickupTime: null,
   });
-  const [deviceKYCDetails, setDeviceKYCDetails] = useState<FormData["deviceKYC"]>({
+  const [deviceKYCDetails, setDeviceKYCDetails] = useState<DeviceKYCFormData>({
     isPowerAdapterChecked: false,
     isKeyboardChecked: false,
     isMouseChecked: false,
     isDeviceOnWarranty: false,
-    warrantyExpiryDate: null,
-    cameraData: null,
+    warrantyExpiryDate: null, // ✅ Now this is correctly typed
+    cameraData: [],
     otherAccessories: "",
     additionalDetailsList: [],
     lockCode: "",
   });
+  
+  
 
   const {FormData, getFormDataById, updateFormData } = useFormDataStorage();
   
@@ -171,6 +186,19 @@ const EditOrder: React.FC = () => {
         setOrderDetails(data.orderDetails || { deviceModel: "", orderStatus: "Pending", problems: [] });
         setEstimateDetails(data.estimateDetails || { repairCost: "", advancePaid: "", pickupDate: null, pickupTime: null });
         setRepairPartnerDetails(data.repairPartnerDetails || { selectedRepairStation: null, selectedInHouseOption: "", selectedServiceCenterOption: "", pickupDate: null, pickupTime: null });
+        setDeviceKYCDetails(data.deviceKYCDetails || { 
+          isPowerAdapterChecked: false,
+          isKeyboardChecked: false,
+          isMouseChecked: false,
+          isDeviceOnWarranty: false,
+          warrantyExpiryDate: null, 
+          cameraData: [],
+          otherAccessories: "",
+          additionalDetailsList: [],
+          lockCode: "",
+        });
+        
+        
         setIsAgreed(true);
         setInitialData(data);
       } catch (error) {
@@ -190,8 +218,7 @@ const EditOrder: React.FC = () => {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
-
-    const updatedData:FormData  = {
+    const updatedData: FormData = {
       id: id as string,
       name,
       designation,
@@ -210,11 +237,12 @@ const EditOrder: React.FC = () => {
       deviceKYC: {
         ...deviceKYCDetails,
         warrantyExpiryDate: deviceKYCDetails.warrantyExpiryDate
-          ? new Date(deviceKYCDetails.warrantyExpiryDate).toISOString()
+          ? deviceKYCDetails.warrantyExpiryDate.toString()
           : null,
       },
-
+      
     };
+    
 
     try {
       await updateFormData(id as string, updatedData);
@@ -259,7 +287,12 @@ const EditOrder: React.FC = () => {
 
         <OrderDetails onDataChange={setOrderDetails} initialData={orderDetails} />
         <EstimateDetails onDataChange={setEstimateDetails} initialData={estimateDetails} />
-        <DeviceKYCForm onSubmit={setDeviceKYCDetails} />
+        <DeviceKYCForm onDataChange={setDeviceKYCDetails}  initialData={{
+    ...deviceKYCDetails,
+    warrantyExpiryDate: deviceKYCDetails.warrantyExpiryDate 
+      ? new Date(deviceKYCDetails.warrantyExpiryDate) 
+      : null
+  }}    />
         <RepairPartner onDataChange={setRepairPartnerDetails} initialData={repairPartnerDetails} />
       </ScrollView>
 

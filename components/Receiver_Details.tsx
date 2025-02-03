@@ -128,6 +128,7 @@ const styles = StyleSheet.create({
     color: "#333",
     flex: 1,
     marginLeft: 8,
+    padding:10,
   },
   designationContainer: {
     flexDirection: "row",

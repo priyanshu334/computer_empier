@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
@@ -27,12 +27,19 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
   const { centers } = useServiceCenters();
   const { providers } = useServiceProviders();
 
-  const [serviceProviderItems, setServiceProviderItems] = useState(
-    providers.map((provider) => ({
-      label: provider.name,
-      value: provider.id,
-    }))
-  );
+  // Use effect to update the service provider items when providers are available
+  const [serviceProviderItems, setServiceProviderItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (providers.length > 0) {
+      setServiceProviderItems(
+        providers.map((provider) => ({
+          label: provider.name,
+          value: provider.id,
+        }))
+      );
+    }
+  }, [providers]); // This will update whenever providers changes
 
   // Date Picker State
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);

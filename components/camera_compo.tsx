@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CameraView, CameraType, FlashMode } from "expo-camera";
+import { CameraView, CameraType, FlashMode, useCameraPermissions } from "expo-camera";
 import * as FileSystem from "expo-file-system";
 import {
   Button,
@@ -21,6 +21,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
 }) => {
   const [facing, setFacing] = useState<CameraType>("back");
   const [flashMode, setFlashMode] = useState<FlashMode>("off");
+  const [permission, requestPermission] = useCameraPermissions();
   let cameraRef: any = null;
 
   async function capturePhoto() {
@@ -53,6 +54,21 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   function toggleFlashMode() {
     setFlashMode((current) =>
       current === "off" ? "on" : current === "on" ? "auto" : "off"
+    );
+  }
+
+  if(!permission){
+    return <View/>
+  }
+
+
+  if (!permission.granted) {
+    // Camera permissions are not granted yet.
+    return (
+      <View style={{flex:1,justifyContent:"center"}}>
+        <Text style={{textAlign:"center",paddingBottom:10}}>We need your permission to show the camera</Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
     );
   }
 
