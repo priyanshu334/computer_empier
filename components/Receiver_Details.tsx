@@ -36,7 +36,7 @@ const ReceiverDetails: React.FC<ReceiverDetailsProps> = ({
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Receiver Name</Text>
         <View style={styles.inputWrapper}>
-          <AntDesign name="user" size={24} color="gray" />
+
           <TextInput
             placeholder="Enter Receiver Name"
             style={styles.input}

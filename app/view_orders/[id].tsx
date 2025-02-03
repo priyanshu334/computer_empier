@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, router } from "expo-router";
 import useFormDataStorage from "@/hooks/useFormData";
 import BottomBar from "@/components/bottom_bar";
@@ -30,7 +30,9 @@ const ViewOrders = () => {
   console.log(id)
   const { getFormDataById, deleteFormData } = useFormDataStorage();
   const [orderData, setOrderData] = useState<any>(null);
-  const phoneNumber = "1234567890";
+  const phoneNumber = orderData?.selectedCustomer?.number || "";
+
+  
     const messageText = "Hello! This is a test message.";
   
     // Handler for phone, message, and WhatsApp actions
@@ -40,31 +42,33 @@ const ViewOrders = () => {
         Alert.alert("Error", "Phone app could not be opened.")
       );
     };
+    const RhandlePhonePress = () => {
+      const phoneUrl = `tel:${phoneNumber}`;
+      Linking.openURL(phoneUrl).catch(() =>
+        Alert.alert("Error", "Phone app could not be opened.")
+      );
+    };
+  
   
     const generateMessageText = () => {
       if (!orderData) return "No order details available.";
     
       return `
     📌 *Computer Empire - Order Update* 📌
-    
     👤 *Receiver:* ${orderData.name}
     💼 *Designation:* ${orderData.designation}
-    
     ${orderData.selectedCustomer ? `
     👤 *Customer:* ${orderData.selectedCustomer.name}
     📞 *Contact:* ${orderData.selectedCustomer.number}
     📍 *Address:* ${orderData.selectedCustomer.address}
     ` : ""}
-    
     📱 *Device Model:* ${orderData.orderDetails.deviceModel}
     📦 *Order Status:* ${orderData.orderDetails.orderStatus}
     🔧 *Problems:* ${orderData.orderDetails.problems.join(", ")}
-    
     💰 *Estimated Repair Cost:* ₹${orderData.estimateDetails.repairCost}
     💵 *Advance Paid:* ₹${orderData.estimateDetails.advancePaid}
     📅 *Pickup Date:* ${orderData.estimateDetails.pickupDate || "N/A"}
     ⏰ *Pickup Time:* ${orderData.estimateDetails.pickupTime || "N/A"}
-    
     🏢 *Repair Partner:* ${orderData.repairPartnerDetails.selectedRepairStation || "N/A"}
     🏠 *In-House Option:* ${orderData.repairPartnerDetails.selectedInHouseOption || "N/A"}
     🏬 *Service Center:* ${orderData.repairPartnerDetails.selectedServiceCenterOption || "N/A"}
@@ -83,8 +87,23 @@ const ViewOrders = () => {
         Alert.alert("Error", "Message app could not be opened.")
       );
     };
-    
+    const RhandleMessagePress = () => {
+      const messageText = generateMessageText();
+      const messageUrl = `sms:${phoneNumber}?body=${encodeURIComponent(messageText)}`;
+      
+      Linking.openURL(messageUrl).catch(() =>
+        Alert.alert("Error", "Message app could not be opened.")
+      );
+    };
     const handleWhatsAppPress = () => {
+      const messageText = generateMessageText();
+      const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(messageText)}`;
+    
+      Linking.openURL(whatsappUrl).catch(() =>
+        Alert.alert("Error", "WhatsApp is not installed or could not be opened.")
+      );
+    };
+    const RhandleWhatsAppPress = () => {
       const messageText = generateMessageText();
       const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(messageText)}`;
     
@@ -97,6 +116,7 @@ const ViewOrders = () => {
         Alert.alert("Error", "No order data available to print.");
         return;
       }
+      
     
       const htmlContent = `
         <html>
@@ -196,7 +216,10 @@ const ViewOrders = () => {
     );
   }
   console.log(orderData)
-
+  function getNumber(Number: string) {
+    const number = orderData.selectedCustomer.number;
+    return number;
+  }
  
 
   return (
@@ -259,6 +282,17 @@ const ViewOrders = () => {
           <Text style={styles.text}>🏬 Service Center Option: {orderData.repairPartnerDetails.selectedServiceCenterOption || "N/A"}</Text>
           <Text style={styles.text}>📅 Pickup Date: {orderData.repairPartnerDetails.pickupDate || "N/A"}</Text>
           <Text style={styles.text}>⏰ Pickup Time: {orderData.repairPartnerDetails.pickupTime || "N/A"}</Text>
+          <View style={styles.iconsContainer}>
+            <TouchableOpacity onPress={RhandlePhonePress}>
+              <Ionicons name="call-outline" size={32} color="#4B5563" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={RhandleMessagePress}>
+              <Ionicons name="chatbox-outline" size={32} color="#4B5563" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={RhandleWhatsAppPress}>
+              <Ionicons name="logo-whatsapp" size={32} color="#4B5563" />
+            </TouchableOpacity>
+          </View>
         </View>
 
 
@@ -377,6 +411,11 @@ const styles = StyleSheet.create({
     height: 100,
     marginRight: 10,
     borderRadius: 8,
+  },
+  iconsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 16,
   },
 });
 

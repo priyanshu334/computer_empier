@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     marginBottom: 10 
   },
   
-  inputContainer: { marginBottom: 10 },
+  inputContainer: { marginBottom: 2 },
 
   buttonContainer: { 
     flexDirection: "row", 
@@ -263,13 +263,13 @@ const styles = StyleSheet.create({
 
   modalContent: { 
     width: "80%", // Reduced from 90% to make it smaller
-    maxHeight: "60%", // Prevents the modal from taking up too much space
+    maxHeight: "100%", // Prevents the modal from taking up too much space
     backgroundColor: "white", 
     padding: 16, 
     borderRadius: 8 
   },
 
-  modalTitle: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 10 },
+  modalTitle: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 6 },
 
   modalButtonContainer: { flexDirection: "row", justifyContent: "space-between", width: "100%" },
 

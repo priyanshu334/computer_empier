@@ -86,7 +86,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.emrepairs"
+    namespace 'com.example.Em'
     defaultConfig {
         applicationId 'com.example.Em'
         minSdkVersion rootProject.ext.minSdkVersion
