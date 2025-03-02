@@ -7,7 +7,8 @@ import {
   TextInput,
   ScrollView,
   Platform,
-  Image
+  Image,
+  Modal
 } from "react-native";
 import { FontAwesome, MaterialIcons, AntDesign } from "@expo/vector-icons";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
@@ -34,8 +35,24 @@ const DeviceKYCForm = ({ onSubmit }) => {
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const { photos, updatePhoto } = useCameraStorage();
-  console.log(photos)
+ 
+  const [capturedPhotos, setCapturedPhotos] = useState([null, null, null, null]);
+  const [showCameraIndex, setShowCameraIndex] = useState(null);
+  const [userInputs, setUserInputs] = useState(["", "", "", ""]);
+  
+
+  function handlePhotoCaptured(photoPath) {
+    const updatedPhotos = [...formData.cameraData];
+    updatedPhotos[showCameraIndex] = photoPath;
+    
+    setFormData((prev) => ({
+      ...prev,
+      cameraData: updatedPhotos, // Save images in form data
+    }));
+  
+    setCapturedPhotos(updatedPhotos); // Update local state (optional)
+    setShowCameraIndex(null);
+  }
   const router = useRouter();
 
   // Update parent component when form data changes
@@ -43,20 +60,9 @@ const DeviceKYCForm = ({ onSubmit }) => {
     onSubmit?.(formData);
   }, [formData, onSubmit]);
 
-  useEffect(() => {
-    updateFormData("cameraData", photos);
-  }, [photos])
-  console.log(photos)
-
-  const updateFormData = (key, value) => {
-    setFormData((prev) => {
-      if (Array.isArray(prev[key]) && Array.isArray(value)) {
-        return { ...prev, [key]: [...prev[key], ...value] }; // Merge arrays
-      }
-      return { ...prev, [key]: value };
-    });
-  };
   
+  
+
   const handleLockCodeSubmit = (code) => {
     updateFormData("lockCode", code);
   };
@@ -90,36 +96,36 @@ const DeviceKYCForm = ({ onSubmit }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView contentContainerClassName={styles.container}>
       <Text style={styles.header}>Device KYC Form</Text>
-
-      {/* Camera Button */}
-      <TouchableOpacity
-  style={{
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: "teal",
-    padding: 15,
-    borderRadius: 10,
-    gap: 8,
-  }}
-  onPress={() => router.push("/camera_page")}
->
-  <View>
-    <Text style={{ color: "white", fontSize: 16, fontWeight: "bold" }}>
-      Device Images
-    </Text>
+      <View style={styles.container}>
+  <View style={styles.gridContainer}>
+    {[0, 1, 2, 3].map((index) => (
+      <View key={index} style={styles.gridItem}>
+        <Button title={`Open Camera ${index + 1}`} onPress={() => setShowCameraIndex(index)} />
+        <View style={styles.previewContainer}>
+          <Text style={styles.previewText}>Photo Preview:</Text>
+          {capturedPhotos[index] ? (
+            <Image source={{ uri: capturedPhotos[index] }} style={styles.previewImage} />
+          ) : (
+            <Text>No Image Captured</Text>
+          )}
+        </View>
+      </View>
+    ))}
   </View>
-</TouchableOpacity>
 
-
-
-
-
-
-    
+  {/* Fullscreen Camera Modal */}
+  <Modal visible={showCameraIndex !== null} animationType="slide" transparent={false}>
+    <View style={styles.cameraContainer}>
+      <CameraComponent
+        onPhotoCaptured={handlePhotoCaptured}
+        onClose={() => setShowCameraIndex(null)}
+      />
+    </View>
+  </Modal>
+</View>
       
-  
       {/* Lock Code Section */}
       <View style={styles.buttonGroup}>
         <DialogComponent onLockCodeSubmit={handleLockCodeSubmit} />
@@ -245,56 +251,70 @@ const DeviceKYCForm = ({ onSubmit }) => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "#ffffff",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
-    gap: 10,
+    elevation: 4,
+    marginTop: 10,
+    justifyContent: "center",
   },
-  header: {
-    fontSize: 18,
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    padding: 20,
+  },
+  gridItem: {
+    width: "45%",
+    marginBottom: 20,
+  },
+  previewContainer: {
+    padding: 10,
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 8,
+  },
+  previewText: {
+    fontSize: 16,
+    marginBottom: 10,
     fontWeight: "bold",
-    color: "#047857",
+    color: "#374151",
   },
-  buttonGroup: {
-    flexDirection: "column",
-    gap: 8,
+  previewImage: {
+    width: 150,
+    height: 200,
+    borderRadius: 10,
+  },
+  cameraContainer: {
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
   },
   button: {
     flexDirection: "row",
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: "teal",
-  },
-  buttonContent: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "center",
+    backgroundColor: "#008080",
+    paddingVertical: 12,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   buttonText: {
-    color: "#FFFFFF", 
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  checkboxGroup: {
-    flex: 1,
-    flexDirection: "column",
-    gap: 8,
-  },
-  checkboxText: {
-    textDecorationLine: "none",
-    color: "#4B5563",
   },
   inputContainer: {
     flexDirection: "row",
@@ -302,36 +322,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#D1D5DB",
     borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     backgroundColor: "#F9FAFB",
-    gap: 8,
+    marginTop: 8,
   },
   textInput: {
     flex: 1,
     fontSize: 16,
     color: "#374151",
   },
-  additionalItemContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-    gap: 8,
-  },
-  additionalItem: {
-    fontSize: 14,
-    color: "#4B5563",
-  },
   submitButton: {
     backgroundColor: "#34D399",
     borderRadius: 8,
-    padding: 12,
+    paddingVertical: 12,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    justifyContent: "center",
+    marginTop: 10,
   },
   submitButtonText: {
     fontSize: 16,
@@ -343,6 +350,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
 });
+
 
 
 export default DeviceKYCForm;

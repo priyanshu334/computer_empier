@@ -30,6 +30,17 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
 
       // Save the captured image to the file system
       await FileSystem.moveAsync({ from: photo.uri, to: filePath });
+
+
+
+
+
+
+
+
+
+
+      
       onPhotoCaptured(filePath);
       onClose(); // Close camera view after capture
     }

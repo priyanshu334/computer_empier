@@ -91,7 +91,7 @@ export default function Index() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}   >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -99,7 +99,7 @@ export default function Index() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-            <AntDesign name="arrowleft" size={24} color="#fff" />
+            
           </TouchableOpacity>
           <Text style={styles.headerTitle}>All Records</Text>
           <View style={styles.rightButtons}>
@@ -113,7 +113,7 @@ export default function Index() {
         </View>
 
         {/* Scrollable Content */}
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}   nestedScrollEnabled={true}>
           {/* Filter Component */}
           <FilterComponent
             onApplyFilters={setFilters}
@@ -137,10 +137,11 @@ export default function Index() {
                 onEdit={() => handleEdit(data.id)}
                 onView={() => handleView(data.id)}
                 onDelete={() => handleDelete(data.id)}
+                
               />
             ))
           )}
-          <Photos/>
+        
         </ScrollView>
 
         {/* Bottom Navigation Bar */}
@@ -153,7 +154,7 @@ export default function Index() {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/Add_orders")} style={styles.navButton}>
             <AntDesign name="filetext1" size={24} color="#fff" />
-            <Text style={styles.navText}>Orders</Text>
+            <Text style={styles.navText}>Add Order</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     backgroundColor: "#047857",
-    padding: 12,
+    padding: 6,
   },
   navButton: {
     alignItems: "center",

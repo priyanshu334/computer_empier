@@ -21,7 +21,7 @@ interface FilterSectionProps {
 const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) => {
   const [serviceCenter, setServiceCenter] = useState<string | null>(initialFilters.serviceCenter);
   const [serviceProvider, setServiceProvider] = useState<string | null>(initialFilters.serviceProvider);
-  const [customerSearch, setCustomerSearch] = useState<string>(initialFilters.customerSearch || ""); // Default to empty string
+  const [customerSearch, setCustomerSearch] = useState<string>(initialFilters.customerSearch || "");
   const [serviceCenterOpen, setServiceCenterOpen] = useState(false);
   const [serviceProviderOpen, setServiceProviderOpen] = useState(false);
   const { centers } = useServiceCenters();
@@ -38,6 +38,13 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialFilters.selectedDate);
 
+  // Toggle filter section
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+
+  const toggleFilterVisibility = () => {
+    setIsFilterVisible(!isFilterVisible);
+  };
+
   const showDatePicker = () => setDatePickerVisibility(true);
   const hideDatePicker = () => setDatePickerVisibility(false);
   const handleConfirm = (date: Date) => {
@@ -50,100 +57,111 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
       serviceCenter,
       serviceProvider,
       selectedDate,
-      customerSearch, // Always a string now
+      customerSearch,
     });
+    setIsFilterVisible(false); // Hide filters after applying
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* Header with Clickable Filter Button */}
+      <TouchableOpacity style={styles.header} onPress={toggleFilterVisibility}>
         <AntDesign name="filter" size={24} color="#047857" />
         <Text style={styles.headerText}>Filters</Text>
-      </View>
+      </TouchableOpacity>
 
-      <View style={styles.filterBox}>
-        {/* Customer Name Search */}
-        <TextInput
-          placeholder="Enter customer name"
-          placeholderTextColor="#9CA3AF"
-          style={styles.input}
-          value={customerSearch}
-          onChangeText={setCustomerSearch} // Updates customerSearch
-        />
+      {/* Conditional Rendering of Filter Box */}
+      {isFilterVisible && (
+        <View style={styles.filterBox}>
+          {/* Customer Name Search */}
+          <TextInput
+            placeholder="Enter customer name"
+            placeholderTextColor="#9CA3AF"
+            style={styles.input}
+            value={customerSearch}
+            onChangeText={setCustomerSearch}
+          />
 
-        {/* Service Center Dropdown */}
-        <View style={{ zIndex: serviceCenterOpen ? 2000 : 1000 }}>
-          <DropDownPicker
-            open={serviceCenterOpen}
-            value={serviceCenter}
-            items={centers.map((center) => ({
-              label: center.name,
-              value: center.id,
-            }))}
-            setOpen={setServiceCenterOpen}
-            setValue={setServiceCenter}
-            setItems={() => {}}
-            placeholder="Select Service Center"
-            placeholderStyle={styles.dropdownPlaceholder}
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-            textStyle={styles.dropdownText}
+          {/* Service Center Dropdown */}
+          <View style={{ zIndex: serviceCenterOpen ? 2000 : 1000 }}>
+            <DropDownPicker
+              open={serviceCenterOpen}
+              value={serviceCenter}
+              items={centers.map((center) => ({
+                label: center.name,
+                value: center.id,
+              }))}
+              setOpen={setServiceCenterOpen}
+              setValue={setServiceCenter}
+              setItems={() => {}}
+              placeholder="Select Service Center"
+              placeholderStyle={styles.dropdownPlaceholder}
+              style={styles.dropdown}
+              dropDownContainerStyle={styles.dropdownContainer}
+              textStyle={styles.dropdownText}
+            />
+          </View>
+
+          {/* Service Provider Dropdown */}
+          <View style={{ zIndex: serviceProviderOpen ? 2000 : 999 }}>
+            <DropDownPicker
+              open={serviceProviderOpen}
+              value={serviceProvider}
+              items={serviceProviderItems}
+              setOpen={setServiceProviderOpen}
+              setValue={setServiceProvider}
+              setItems={setServiceProviderItems}
+              placeholder="Select Service Provider"
+              placeholderStyle={styles.dropdownPlaceholder}
+              style={styles.dropdown}
+              dropDownContainerStyle={styles.dropdownContainer}
+              textStyle={styles.dropdownText}
+            />
+          </View>
+
+          {/* Footer Section */}
+          <View style={styles.footer}>
+            {/* Repair Date Picker Button */}
+            <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
+              <AntDesign name="calendar" size={20} color="#9CA3AF" />
+              <Text style={styles.dateButtonText}>
+                {selectedDate ? selectedDate.toDateString() : "Select Date"}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Apply Filters Button */}
+            <TouchableOpacity style={styles.applyButton} onPress={handleApplyFilters}>
+              <Text style={styles.applyButtonText}>Apply</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Date Picker Modal */}
+          <DateTimePickerModal
+            isVisible={isDatePickerVisible}
+            mode="date"
+            onConfirm={handleConfirm}
+            onCancel={hideDatePicker}
           />
         </View>
-
-        {/* Service Provider Dropdown */}
-        <View style={{ zIndex: serviceProviderOpen ? 2000 : 999 }}>
-          <DropDownPicker
-            open={serviceProviderOpen}
-            value={serviceProvider}
-            items={serviceProviderItems}
-            setOpen={setServiceProviderOpen}
-            setValue={setServiceProvider}
-            setItems={setServiceProviderItems}
-            placeholder="Select Service Provider"
-            placeholderStyle={styles.dropdownPlaceholder}
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-            textStyle={styles.dropdownText}
-          />
-        </View>
-
-        {/* Footer Section */}
-        <View style={styles.footer}>
-          {/* Repair Date Picker Button */}
-          <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
-            <AntDesign name="calendar" size={20} color="#9CA3AF" />
-            <Text style={styles.dateButtonText}>
-              {selectedDate ? selectedDate.toDateString() : "Select Date"}
-            </Text>
-          </TouchableOpacity>
-
-          {/* Apply Filters Button */}
-          <TouchableOpacity style={styles.applyButton} onPress={handleApplyFilters}>
-            <Text style={styles.applyButtonText}>Apply</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Date Picker Modal */}
-      <DateTimePickerModal
-        isVisible={isDatePickerVisible}
-        mode="date"
-        onConfirm={handleConfirm}
-        onCancel={hideDatePicker}
-      />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 5,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#ECFDF5",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#047857",
   },
   headerText: {
     fontSize: 18,
@@ -152,7 +170,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   filterBox: {
-    marginTop: 16,
+    marginTop: 8,
     padding: 16,
     backgroundColor: "#F9FAFB",
     borderRadius: 8,

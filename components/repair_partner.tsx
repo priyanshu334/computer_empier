@@ -182,17 +182,7 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
             ))}
           </Picker>
 
-          <View style={styles.iconsContainer}>
-            <TouchableOpacity onPress={handlePhonePress}>
-              <Ionicons name="call-outline" size={32} color="#4B5563" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleMessagePress}>
-              <Ionicons name="chatbox-outline" size={32} color="#4B5563" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleWhatsAppPress}>
-              <Ionicons name="logo-whatsapp" size={32} color="#4B5563" />
-            </TouchableOpacity>
-          </View>
+        
         </View>
       )}
 
@@ -270,17 +260,7 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
           </View>
 
           {/* Communication Icons */}
-          <View style={styles.iconsContainer}>
-            <TouchableOpacity onPress={handlePhonePress}>
-              <Ionicons name="call-outline" size={32} color="#4B5563" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleMessagePress}>
-              <Ionicons name="chatbox-outline" size={32} color="#4B5563" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleWhatsAppPress}>
-              <Ionicons name="logo-whatsapp" size={32} color="#4B5563" />
-            </TouchableOpacity>
-          </View>
+        
         </View>
       )}
     </View>

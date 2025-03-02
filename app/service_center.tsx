@@ -52,7 +52,7 @@ export default function ServiceCenter() {
     <SafeAreaView className="flex-1 bg-[#F0FDF4]">
       {/* Header */}
       <View className="flex-row justify-start items-center bg-emerald-900 p-4 border-b-[1px]">
-        <TouchableOpacity onPress={() => router.push("/")}>
+        <TouchableOpacity onPress={() => router.replace("/")}>
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
         <Text className="text-white text-lg font-bold absolute left-0 right-0 text-center">
