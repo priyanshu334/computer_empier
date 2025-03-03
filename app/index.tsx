@@ -128,7 +128,9 @@ export default function Index() {
           ) : (
             filteredData.map((data: any) => (
               <DataCard
+
                 key={data.id}
+                imageUrl={data.deviceKyc?.cameraData[0]}
                 orderStatus={data.orderDetails.orderStatus}
                 orderModel={data.orderDetails.deviceModel}
                 customerName={data.selectedCustomer?.name || "N/A"}
@@ -137,6 +139,7 @@ export default function Index() {
                 onEdit={() => handleEdit(data.id)}
                 onView={() => handleView(data.id)}
                 onDelete={() => handleDelete(data.id)}
+                
                 
               />
             ))

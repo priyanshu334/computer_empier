@@ -97,7 +97,10 @@ const DeviceKYCForm = ({ onSubmit }) => {
 
   return (
     <ScrollView contentContainerClassName={styles.container}>
-      <Text style={styles.header}>Device KYC Form</Text>
+      <Text style={{   fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 16,
+    color: "#047857" }}>Device KYC Form</Text>
       <View style={styles.container}>
   <View style={styles.gridContainer}>
     {[0, 1, 2, 3].map((index) => (
@@ -140,10 +143,10 @@ const DeviceKYCForm = ({ onSubmit }) => {
           style={styles.button}
           onPress={() => router.push("/PatternLock")}
         >
-          <View style={styles.buttonContent}>
-            <MaterialIcons name="pattern" size={20} color="#FFFFFF" />
+          
+           
             <Text style={styles.buttonText}>Set Pattern Lock Code</Text>
-          </View>
+  
         </TouchableOpacity>
       </View>
 
