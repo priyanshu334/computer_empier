@@ -127,6 +127,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     flex: 1,
+    paddingVertical: 8,
+    fontWeight: "400",
     marginLeft: 8,
   },
   designationContainer: {

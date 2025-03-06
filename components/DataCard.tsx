@@ -71,7 +71,7 @@ const DataCard: React.FC<DataCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#f8f9fa",
-    padding: 16,
+    padding: 10,
     borderRadius: 8,
     marginBottom: 16,
     shadowColor: "#000",
@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   image: {
-    width: 60,
-    height: 60,
+    width: 120,
+    height:210,
     borderRadius: 8,
     marginRight: 16,
   },

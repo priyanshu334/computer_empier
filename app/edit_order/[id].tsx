@@ -58,6 +58,17 @@ interface OrderData {
   orderDetails: OrderDetails;
   estimateDetails: EstimateDetails;
   repairPartnerDetails: RepairPartnerDetails;
+  deviceKYC: {
+    isPowerAdapterChecked: boolean;
+    isKeyboardChecked: boolean;
+    isMouseChecked: boolean;
+    isDeviceOnWarranty: boolean;
+    warrantyExpiryDate: string | null;
+    cameraData: any;
+    otherAccessories: string;
+    additionalDetailsList: string[];
+    lockCode: string;
+  };
 }
 interface FormData {
   id: string;
@@ -160,8 +171,6 @@ const EditOrder: React.FC = () => {
         if (!data) {
           Alert.alert("Error", "Order not found.");
           router.back();
-
-
           return;
         }
   
@@ -171,6 +180,18 @@ const EditOrder: React.FC = () => {
         setOrderDetails(data.orderDetails || { deviceModel: "", orderStatus: "Pending", problems: [] });
         setEstimateDetails(data.estimateDetails || { repairCost: "", advancePaid: "", pickupDate: null, pickupTime: null });
         setRepairPartnerDetails(data.repairPartnerDetails || { selectedRepairStation: null, selectedInHouseOption: "", selectedServiceCenterOption: "", pickupDate: null, pickupTime: null });
+        setDeviceKYCDetails(data.deviceKYC || {
+          isPowerAdapterChecked: false,
+          isKeyboardChecked: false,
+          isMouseChecked: false,
+          isDeviceOnWarranty: false,
+          warrantyExpiryDate: null,
+          cameraData: null,
+          otherAccessories: "",
+          additionalDetailsList: [],
+          lockCode: "",
+        });
+  
         setIsAgreed(true);
         setInitialData(data);
       } catch (error) {
@@ -191,7 +212,7 @@ const EditOrder: React.FC = () => {
       return;
     }
 
-    const updatedData:FormData  = {
+    const updatedData: FormData = {
       id: id as string,
       name,
       designation,
@@ -213,8 +234,8 @@ const EditOrder: React.FC = () => {
           ? new Date(deviceKYCDetails.warrantyExpiryDate).toISOString()
           : null,
       },
-
     };
+    
 
     try {
       await updateFormData(id as string, updatedData);
@@ -259,7 +280,7 @@ const EditOrder: React.FC = () => {
 
         <OrderDetails onDataChange={setOrderDetails} initialData={orderDetails} />
         <EstimateDetails onDataChange={setEstimateDetails} initialData={estimateDetails} />
-        <DeviceKYCForm onSubmit={setDeviceKYCDetails} />
+        <DeviceKYCForm onSubmit={setDeviceKYCDetails} initialData={initialData?.deviceKYC}  />
         <RepairPartner onDataChange={setRepairPartnerDetails} initialData={repairPartnerDetails} />
       </ScrollView>
 

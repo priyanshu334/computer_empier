@@ -119,6 +119,7 @@ export default function Index() {
             onApplyFilters={setFilters}
             initialFilters={filters}
           />
+          
 
           {/* No records message */}
           {filteredData.length === 0 ? (
@@ -126,23 +127,23 @@ export default function Index() {
               <Text style={styles.emptyText}>No records found.</Text>
             </View>
           ) : (
-            filteredData.map((data: any) => (
-              <DataCard
-
-                key={data.id}
-                imageUrl={data.deviceKyc?.cameraData[0]}
-                orderStatus={data.orderDetails.orderStatus}
-                orderModel={data.orderDetails.deviceModel}
-                customerName={data.selectedCustomer?.name || "N/A"}
-                customerNumber={data.selectedCustomer?.number || "N/A"}
-                date={formatDate(data.estimateDetails.pickupDate)}
-                onEdit={() => handleEdit(data.id)}
-                onView={() => handleView(data.id)}
-                onDelete={() => handleDelete(data.id)}
-                
-                
-              />
-            ))
+            filteredData.map((data: any) => {
+              console.log("Rendering DataCard with data:", data);
+              return (
+                <DataCard
+                  key={data.id}
+                  imageUrl={data.deviceKYC?.cameraData[0]}
+                  orderStatus={data.orderDetails.orderStatus}
+                  orderModel={data.orderDetails.deviceModel}
+                  customerName={data.selectedCustomer?.name || "N/A"}
+                  customerNumber={data.selectedCustomer?.number || "N/A"}
+                  date={formatDate(data.estimateDetails.pickupDate)}
+                  onEdit={() => handleEdit(data.id)}
+                  onView={() => handleView(data.id)}
+                  onDelete={() => handleDelete(data.id)}
+                />
+              );
+})
           )}
         
         </ScrollView>
