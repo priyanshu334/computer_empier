@@ -15,6 +15,7 @@ import useFormDataStorage from "../hooks/useFormData";
 import DataCard from "@/components/DataCard";
 import FilterComponent from "@/components/filter_section";
 import Photos from "@/components/photos";
+import { useAppwriteFormData } from "../hooks/useAppwriteFormData"; // Import the Appwrite hook
 
 // Type definition for the filter structure
 interface Filters {
@@ -27,6 +28,7 @@ interface Filters {
 export default function Index() {
   const router = useRouter();
   const { formDataList, deleteFormData } = useFormDataStorage();
+  const { createFormData } = useAppwriteFormData(); // Destructure the createFormData function
 
   // State for filters
   const [filters, setFilters] = useState<Filters>({
@@ -75,23 +77,33 @@ export default function Index() {
 
   // Edit the selected record
   const handleEdit = (id: string) => {
-    // console.log(`item to edit: ${id}`);
     router.push(`./edit_order/${id}`);
   };
 
   const handleView = (id: string) => {
-    // console.log(`Viewing item: ${id}`);
     router.push(`./view_orders/${id}`);
   };
 
   // Delete the selected record
   const handleDelete = async (id: string) => {
-    // console.log(`Deleting item: ${id}`);
     await deleteFormData(id);
   };
 
+  // Sync data to Appwrite
+  const handleSync = async () => {
+    try {
+      for (const data of formDataList) {
+        await createFormData(data);
+      }
+      alert("Data synced successfully!");
+    } catch (error) {
+      console.error("Error syncing data:", error);
+      alert("Failed to sync data.");
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}   >
+    <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
@@ -106,14 +118,14 @@ export default function Index() {
             <TouchableOpacity>
               <AntDesign name="arrowdown" size={22} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleSync}>
               <AntDesign name="sync" size={22} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Scrollable Content */}
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}   nestedScrollEnabled={true}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
           {/* Filter Component */}
           <FilterComponent
             onApplyFilters={setFilters}
@@ -143,15 +155,13 @@ export default function Index() {
                   onDelete={() => handleDelete(data.id)}
                 />
               );
-})
+            })
           )}
         
         </ScrollView>
 
         {/* Bottom Navigation Bar */}
         <View style={styles.bottomBar}>
-     
-          
           <TouchableOpacity onPress={() => router.push("/service")} style={styles.navButton}>
             <AntDesign name="home" size={24} color="#fff" />
             <Text style={styles.navText}>Centers</Text>
