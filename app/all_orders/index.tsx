@@ -11,32 +11,45 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import useFormDataStorage from "../hooks/useFormData";
 import DataCard from "@/components/DataCard";
 import FilterComponent from "@/components/filter_section";
-import Photos from "@/components/photos";
-import { useAppwriteFormData } from "../hooks/useAppwriteFormData"; // Import the Appwrite hook
+import { useAppwriteFormData } from "@/hooks/useAppwriteFormData";  // Import the Appwrite hook
+import { Models } from "appwrite";
 
 // Type definition for the filter structure
 interface Filters {
   serviceCenter: string | null;
   serviceProvider: string | null;
   selectedDate: Date | null;
-  customerSearch: string;  // Ensuring it is always a string
+  customerSearch: string; // Ensuring it is always a string
 }
 
 export default function Index() {
   const router = useRouter();
-  const { formDataList, deleteFormData } = useFormDataStorage();
-  const { createFormData } = useAppwriteFormData(); // Destructure the createFormData function
+  const { createFormData, getAllFormData, deleteFormData } = useAppwriteFormData();
 
-  // State for filters
+  // State for form data and filters
+  const [formDataList, setFormDataList] = useState<Models.Document[]>([]);
   const [filters, setFilters] = useState<Filters>({
     serviceCenter: null,
     serviceProvider: null,
     selectedDate: null,
-    customerSearch: "",  // Ensuring a default empty string
+    customerSearch: "", // Ensuring a default empty string
   });
+
+  // Fetch all form data on component mount
+  useEffect(() => {
+    fetchFormData();
+  }, []);
+
+  const fetchFormData = async () => {
+    try {
+      const data = await getAllFormData();
+      setFormDataList(data); // data is always an array, even if empty
+    } catch (error) {
+      console.error("Error fetching form data:", error);
+    }
+  };
 
   // Memoized filtered data to prevent unnecessary re-renders
   const filteredData = useMemo(() => {
@@ -49,7 +62,6 @@ export default function Index() {
         ? data.repairPartnerDetails.selectedInHouseOption === filters.serviceProvider
         : true;
 
-      // Handling null `pickupDate` gracefully
       const matchesDate = filters.selectedDate
         ? data.estimateDetails.pickupDate &&
           new Date(data.estimateDetails.pickupDate).toDateString() ===
@@ -63,10 +75,10 @@ export default function Index() {
 
       return matchesServiceCenter && matchesServiceProvider && matchesDate && matchesCustomerSearch;
     });
-  }, [formDataList, filters]); // Runs only when dependencies change
+  }, [formDataList, filters]);
 
   // Format the date, return 'N/A' if null
-  const formatDate = (date: Date | null): string => {
+  const formatDate = (date: string | null): string => {
     if (!date) return "N/A";
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -77,28 +89,20 @@ export default function Index() {
 
   // Edit the selected record
   const handleEdit = (id: string) => {
-    router.push(`./edit_order/${id}`);
+    router.push(`./all_orders_edit/${id}`);
   };
 
   const handleView = (id: string) => {
-    router.push(`./view_orders/${id}`);
+    router.push(`./all_orders_view/${id}`);
   };
 
   // Delete the selected record
   const handleDelete = async (id: string) => {
-    await deleteFormData(id);
-  };
-
-  // Sync data to Appwrite
-  const handleSync = async () => {
     try {
-      for (const data of formDataList) {
-        await createFormData(data);
-      }
-      alert("Data synced successfully!");
+      await deleteFormData(id);
+      fetchFormData(); // Refresh the list after deletion
     } catch (error) {
-      console.error("Error syncing data:", error);
-      alert("Failed to sync data.");
+      console.error("Error deleting form data:", error);
     }
   };
 
@@ -111,27 +115,21 @@ export default function Index() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
-            
+            <AntDesign name="arrowleft" size={22} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>All Records</Text>
           <View style={styles.rightButtons}>
-            <TouchableOpacity>
-              <AntDesign name="arrowdown" size={22} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleSync}>
-              <AntDesign name="sync" size={22} color="#fff" />
-            </TouchableOpacity>
-          </View>
+                      <TouchableOpacity>
+                        <AntDesign name="arrowdown" size={22} color="#fff" />
+                      </TouchableOpacity>
+                   
+                    </View>
         </View>
 
         {/* Scrollable Content */}
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
           {/* Filter Component */}
-          <FilterComponent
-            onApplyFilters={setFilters}
-            initialFilters={filters}
-          />
-          
+          <FilterComponent onApplyFilters={setFilters} initialFilters={filters} />
 
           {/* No records message */}
           {filteredData.length === 0 ? (
@@ -139,25 +137,21 @@ export default function Index() {
               <Text style={styles.emptyText}>No records found.</Text>
             </View>
           ) : (
-            filteredData.map((data: any) => {
-              console.log("Rendering DataCard with data:", data);
-              return (
-                <DataCard
-                  key={data.id}
-                  imageUrl={data.deviceKYC?.cameraData[0]}
-                  orderStatus={data.orderDetails.orderStatus}
-                  orderModel={data.orderDetails.deviceModel}
-                  customerName={data.selectedCustomer?.name || "N/A"}
-                  customerNumber={data.selectedCustomer?.number || "N/A"}
-                  date={formatDate(data.estimateDetails.pickupDate)}
-                  onEdit={() => handleEdit(data.id)}
-                  onView={() => handleView(data.id)}
-                  onDelete={() => handleDelete(data.id)}
-                />
-              );
-            })
+            filteredData.map((data) => (
+              <DataCard
+                key={data.$id} // Use Appwrite's document ID
+                imageUrl={data.deviceKYC?.cameraData[0]}
+                orderStatus={data.orderDetails.orderStatus}
+                orderModel={data.orderDetails.deviceModel}
+                customerName={data.selectedCustomer?.name || "N/A"}
+                customerNumber={data.selectedCustomer?.number || "N/A"}
+                date={formatDate(data.estimateDetails.pickupDate)}
+                onEdit={() => handleEdit(data.$id)}
+                onView={() => handleView(data.$id)}
+                onDelete={() => handleDelete(data.$id)}
+              />
+            ))
           )}
-        
         </ScrollView>
 
         {/* Bottom Navigation Bar */}
@@ -169,10 +163,6 @@ export default function Index() {
           <TouchableOpacity onPress={() => router.push("/Add_orders")} style={styles.navButton}>
             <AntDesign name="filetext1" size={24} color="#fff" />
             <Text style={styles.navText}>Add Order</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/all_orders")} style={styles.navButton}>
-            <AntDesign name="filetext1" size={24} color="#fff" />
-            <Text style={styles.navText}>All Orders</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
