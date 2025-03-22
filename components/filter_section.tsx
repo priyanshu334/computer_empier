@@ -1,7 +1,17 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Modal,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useServiceCenters } from "../hooks/useServiceCenters";
 import { useServiceProviders } from "../hooks/useServiceProvider";
@@ -11,6 +21,7 @@ interface Filters {
   serviceProvider: string | null;
   selectedDate: Date | null;
   customerSearch: string;
+  orderStatus: string | null;
 }
 
 interface FilterSectionProps {
@@ -22,24 +33,18 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
   const [serviceCenter, setServiceCenter] = useState<string | null>(initialFilters.serviceCenter);
   const [serviceProvider, setServiceProvider] = useState<string | null>(initialFilters.serviceProvider);
   const [customerSearch, setCustomerSearch] = useState<string>(initialFilters.customerSearch || "");
-  const [serviceCenterOpen, setServiceCenterOpen] = useState(false);
-  const [serviceProviderOpen, setServiceProviderOpen] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<string | null>(initialFilters.orderStatus);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(initialFilters.selectedDate);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(initialFilters.orderStatus ? initialFilters.orderStatus.split(',') : []);
+
+  // State for dialogs
+  const [isServiceCenterDialogVisible, setServiceCenterDialogVisible] = useState(false);
+  const [isServiceProviderDialogVisible, setServiceProviderDialogVisible] = useState(false);
+
   const { centers } = useServiceCenters();
   const { providers } = useServiceProviders();
-
-  const [serviceProviderItems, setServiceProviderItems] = useState(
-    providers.map((provider) => ({
-      label: provider.name,
-      value: provider.id,
-    }))
-  );
-
-  // Date Picker State
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(initialFilters.selectedDate);
-
-  // Toggle filter section
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   const toggleFilterVisibility = () => {
     setIsFilterVisible(!isFilterVisible);
@@ -52,76 +57,110 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
     hideDatePicker();
   };
 
+  const toggleOrderStatus = (status: string) => {
+    setSelectedStatuses((prevStatuses) => {
+      if (prevStatuses.includes(status)) {
+        return prevStatuses.filter((s) => s !== status);
+      } else {
+        return [...prevStatuses, status];
+      }
+    });
+  };
+
   const handleApplyFilters = () => {
     onApplyFilters({
       serviceCenter,
       serviceProvider,
       selectedDate,
       customerSearch,
+      orderStatus: selectedStatuses.length > 0 ? selectedStatuses.join(",") : null,
     });
-    setIsFilterVisible(false); // Hide filters after applying
+    setIsFilterVisible(false);
   };
+
+  const handleResetFilters = () => {
+    setServiceCenter(null);
+    setServiceProvider(null);
+    setSelectedDate(null);
+    setCustomerSearch("");
+    setSelectedStatuses([]);
+    onApplyFilters({
+      serviceCenter: null,
+      serviceProvider: null,
+      selectedDate: null,
+      customerSearch: "",
+      orderStatus: null,
+    });
+  };
+
+  // Render item for FlatList in dialogs
+  const renderItem = ({ item }: { item: { label: string; value: string } }) => (
+    <TouchableOpacity
+      style={styles.dialogItem}
+      onPress={() => {
+        if (isServiceCenterDialogVisible) {
+          setServiceCenter(item.value); // Store the name of the service center
+        } else if (isServiceProviderDialogVisible) {
+          setServiceProvider(item.value); // Store the name of the service provider
+        }
+        // Close the dialog after selection
+        setServiceCenterDialogVisible(false);
+        setServiceProviderDialogVisible(false);
+      }}
+    >
+      <Text style={styles.dialogItemText}>{item.label}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
-      {/* Header with Clickable Filter Button */}
       <TouchableOpacity style={styles.header} onPress={toggleFilterVisibility}>
-        <AntDesign name="filter" size={24} color="#047857" />
+        <AntDesign name={isFilterVisible ? "up" : "filter"} size={24} color="#047857" />
         <Text style={styles.headerText}>Filters</Text>
       </TouchableOpacity>
 
-      {/* Conditional Rendering of Filter Box */}
       {isFilterVisible && (
-        <View style={styles.filterBox}>
-          {/* Customer Name Search */}
-          <TextInput
-            placeholder="Enter customer name"
-            placeholderTextColor="#9CA3AF"
-            style={styles.input}
-            value={customerSearch}
-            onChangeText={setCustomerSearch}
-          />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <ScrollView
+            style={styles.filterBox}
+            contentContainerStyle={styles.filterContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Service Center Dialog Trigger */}
+            <TouchableOpacity
+              style={styles.dialogTrigger}
+              onPress={() => setServiceCenterDialogVisible(true)}
+            >
+              <Text style={styles.dialogTriggerText}>
+                {serviceCenter || "Select Service Center"}
+              </Text>
+              <AntDesign name="down" size={16} color="#9CA3AF" />
+            </TouchableOpacity>
 
-          {/* Service Center Dropdown */}
-          <View style={{ zIndex: serviceCenterOpen ? 2000 : 1000 }}>
-            <DropDownPicker
-              open={serviceCenterOpen}
-              value={serviceCenter}
-              items={centers.map((center) => ({
-                label: center.name,
-                value: center.id,
-              }))}
-              setOpen={setServiceCenterOpen}
-              setValue={setServiceCenter}
-              setItems={() => {}}
-              placeholder="Select Service Center"
-              placeholderStyle={styles.dropdownPlaceholder}
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-              textStyle={styles.dropdownText}
+            {/* Service Provider Dialog Trigger */}
+            <TouchableOpacity
+              style={styles.dialogTrigger}
+              onPress={() => setServiceProviderDialogVisible(true)}
+            >
+              <Text style={styles.dialogTriggerText}>
+                {serviceProvider || "Select Service Provider"}
+              </Text>
+              <AntDesign name="down" size={16} color="#9CA3AF" />
+            </TouchableOpacity>
+
+            {/* Customer Search Input */}
+            <TextInput
+              placeholder="Enter customer name"
+              placeholderTextColor="#9CA3AF"
+              style={styles.input}
+              value={customerSearch}
+              onChangeText={setCustomerSearch}
             />
-          </View>
 
-          {/* Service Provider Dropdown */}
-          <View style={{ zIndex: serviceProviderOpen ? 2000 : 999 }}>
-            <DropDownPicker
-              open={serviceProviderOpen}
-              value={serviceProvider}
-              items={serviceProviderItems}
-              setOpen={setServiceProviderOpen}
-              setValue={setServiceProvider}
-              setItems={setServiceProviderItems}
-              placeholder="Select Service Provider"
-              placeholderStyle={styles.dropdownPlaceholder}
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-              textStyle={styles.dropdownText}
-            />
-          </View>
-
-          {/* Footer Section */}
-          <View style={styles.footer}>
-            {/* Repair Date Picker Button */}
+            {/* Date Picker Button */}
             <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
               <AntDesign name="calendar" size={20} color="#9CA3AF" />
               <Text style={styles.dateButtonText}>
@@ -129,33 +168,109 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
               </Text>
             </TouchableOpacity>
 
-            {/* Apply Filters Button */}
-            <TouchableOpacity style={styles.applyButton} onPress={handleApplyFilters}>
-              <Text style={styles.applyButtonText}>Apply</Text>
+            {/* Order Status Buttons */}
+            <View style={styles.statusButtonsContainer}>
+              {["Pending", "Delivered", "Cancelled", "Repaired"].map((status) => (
+                <TouchableOpacity
+                  key={status}
+                  style={[
+                    styles.statusButton,
+                    selectedStatuses.includes(status) && styles.statusButtonActive,
+                  ]}
+                  onPress={() => toggleOrderStatus(status)}
+                >
+                  <Text style={styles.statusButtonText}>{status}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Footer Buttons */}
+            <View style={styles.footer}>
+              <TouchableOpacity style={styles.resetButton} onPress={handleResetFilters}>
+                <Text style={styles.resetButtonText}>Reset</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.applyButton} onPress={handleApplyFilters}>
+                <Text style={styles.applyButtonText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Date Picker Modal */}
+            <DateTimePickerModal
+              isVisible={isDatePickerVisible}
+              mode="date"
+              onConfirm={handleConfirm}
+              onCancel={hideDatePicker}
+            />
+          </ScrollView>
+        </KeyboardAvoidingView>
+      )}
+
+      {/* Service Center Dialog */}
+      <Modal
+        visible={isServiceCenterDialogVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setServiceCenterDialogVisible(false)}
+      >
+        <View style={styles.dialogContainer}>
+          <View style={styles.dialogContent}>
+            <FlatList
+              data={centers.map((center) => ({ label: center.name, value: center.name }))} // Use name as value
+              renderItem={renderItem}
+              keyExtractor={(item) => item.value}
+            />
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setServiceCenterDialogVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Date Picker Modal */}
-          <DateTimePickerModal
-            isVisible={isDatePickerVisible}
-            mode="date"
-            onConfirm={handleConfirm}
-            onCancel={hideDatePicker}
-          />
         </View>
-      )}
+      </Modal>
+
+      {/* Service Provider Dialog */}
+      <Modal
+        visible={isServiceProviderDialogVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setServiceProviderDialogVisible(false)}
+      >
+        <View style={styles.dialogContainer}>
+          <View style={styles.dialogContent}>
+            <FlatList
+              data={providers.map((provider) => ({ label: provider.name, value: provider.name }))} // Use name as value
+              renderItem={renderItem}
+              keyExtractor={(item) => item.value}
+            />
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setServiceProviderDialogVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 5,
+    padding: 10,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+    marginBottom: 30,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 2,
     paddingVertical: 10,
     paddingHorizontal: 12,
     backgroundColor: "#ECFDF5",
@@ -171,13 +286,12 @@ const styles = StyleSheet.create({
   },
   filterBox: {
     marginTop: 8,
+    maxHeight: 400,
+  },
+  filterContent: {
     padding: 16,
     backgroundColor: "#F9FAFB",
     borderRadius: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
   },
   input: {
     height: 40,
@@ -188,27 +302,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: "#FFFFFF",
   },
-  dropdown: {
-    backgroundColor: "#FFFFFF",
-    borderColor: "#D1D5DB",
+  dialogTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     height: 48,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  dropdownContainer: {
+    borderWidth: 1,
     borderColor: "#D1D5DB",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    backgroundColor: "#FFFFFF",
   },
-  dropdownText: {
+  dialogTriggerText: {
     fontSize: 14,
     color: "#374151",
-  },
-  dropdownPlaceholder: {
-    color: "#9CA3AF",
-  },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
   },
   dateButton: {
     flexDirection: "row",
@@ -219,11 +327,52 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#D1D5DB",
+    marginBottom: 16,
   },
   dateButtonText: {
     fontSize: 14,
     color: "#374151",
     marginLeft: 8,
+  },
+  statusButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  statusButton: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: "#F3F4F6",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    marginHorizontal: 4,
+    alignItems: "center",
+  },
+  statusButtonActive: {
+    backgroundColor: "white",
+    borderWidth: 2,
+    borderColor: "red",
+  },
+  statusButtonText: {
+    fontSize: 14,
+    color: "#374151",
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  resetButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: "#EF4444",
+    borderRadius: 8,
+  },
+  resetButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
   },
   applyButton: {
     paddingVertical: 8,
@@ -232,6 +381,40 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   applyButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  dialogContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  dialogContent: {
+    width: "80%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    padding: 16,
+    maxHeight: "60%",
+  },
+  dialogItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#D1D5DB",
+  },
+  dialogItemText: {
+    fontSize: 16,
+    color: "#374151",
+  },
+  cancelButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    backgroundColor: "#EF4444",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",

@@ -43,7 +43,7 @@ interface EstimateDetails {
 }
 
 interface RepairPartnerDetails {
-  selectedRepairStation: string | null;
+  selectedRepairStation: "in-house" | "service-center" | null
   selectedInHouseOption: string;
   selectedServiceCenterOption: string;
   pickupDate: Date | null;

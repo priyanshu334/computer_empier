@@ -70,9 +70,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         <TouchableOpacity style={styles.button} onPress={capturePhoto}>
           <Text style={styles.text}>Take Picture</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={toggleFlashMode}>
-          <Text style={styles.text}>Flash: {flashMode}</Text>
-        </TouchableOpacity>
+    
         <TouchableOpacity style={styles.button} onPress={onClose}>
           <Text style={styles.text}>Close</Text>
         </TouchableOpacity>
@@ -104,6 +102,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 18,
     fontWeight: "bold",
+    marginHorizontal: 10,
     color: "white",
   },
 });

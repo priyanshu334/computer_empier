@@ -2,20 +2,20 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Linking, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker"; // Picker for dropdown
-import { useServiceCenters } from "../hooks/useServiceCenters"; // Import the custom hook
+import { Picker } from "@react-native-picker/picker";
+import { useServiceCenters } from "../hooks/useServiceCenters";
 import { useServiceProviders } from "@/hooks/useServiceProvider";
 
 type RepairPartnerProps = {
   onDataChange: (data: {
-    selectedRepairStation: string | null;
+    selectedRepairStation: "in-house" | "service-center" | null;
     selectedInHouseOption: string;
     selectedServiceCenterOption: string;
     pickupDate: Date | null;
     pickupTime: Date | null;
   }) => void;
   initialData?: {
-    selectedRepairStation: string | null;
+    selectedRepairStation: "in-house" | "service-center" | null;
     selectedInHouseOption: string;
     selectedServiceCenterOption: string;
     pickupDate: Date | null;
@@ -24,26 +24,34 @@ type RepairPartnerProps = {
 };
 
 const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData }) => {
-  const { centers } = useServiceCenters(); // Use the custom hook to fetch centers
+  const { centers } = useServiceCenters();
   const { providers } = useServiceProviders();
-  const [selectedRepairStation, setSelectedRepairStation] = useState<
-  "in-house" | "service-center" | null
->(
-  (initialData?.selectedRepairStation as "in-house" | "service-center" | null) || null
-);
 
-  const [selectedInHouseOption, setSelectedInHouseOption] = useState(initialData?.selectedInHouseOption || "");
-  const [selectedServiceCenterOption, setSelectedServiceCenterOption] = useState(initialData?.selectedServiceCenterOption || "");
+  // Initialize state with proper type assertions
+  const [selectedRepairStation, setSelectedRepairStation] = useState<
+    "in-house" | "service-center" | null
+  >(initialData?.selectedRepairStation || null);
+
+  const [selectedInHouseOption, setSelectedInHouseOption] = useState(
+    initialData?.selectedInHouseOption || ""
+  );
+  const [selectedServiceCenterOption, setSelectedServiceCenterOption] = useState(
+    initialData?.selectedServiceCenterOption || ""
+  );
   const [pickupDate, setPickupDate] = useState<Date | null>(initialData?.pickupDate || null);
   const [pickupTime, setPickupTime] = useState<Date | null>(initialData?.pickupTime || null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   useEffect(() => {
-    if (initialData) {
-      onDataChange(initialData);
-    }
-  }, [initialData]);
+    onDataChange({
+      selectedRepairStation,
+      selectedInHouseOption,
+      selectedServiceCenterOption,
+      pickupDate,
+      pickupTime,
+    });
+  }, [selectedRepairStation, selectedInHouseOption, selectedServiceCenterOption, pickupDate, pickupTime]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || pickupDate;
@@ -83,23 +91,16 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
   };
 
   const handleMessagePress = () => {
-    const messageUrl = `sms:${phoneNumber}?body=${encodeURIComponent(
-      messageText
-    )}`;
+    const messageUrl = `sms:${phoneNumber}?body=${encodeURIComponent(messageText)}`;
     Linking.openURL(messageUrl).catch(() =>
       Alert.alert("Error", "Message app could not be opened.")
     );
   };
 
   const handleWhatsAppPress = () => {
-    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(
-      messageText
-    )}`;
+    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(messageText)}`;
     Linking.openURL(whatsappUrl).catch(() =>
-      Alert.alert(
-        "Error",
-        "WhatsApp is not installed on this device or could not be opened."
-      )
+      Alert.alert("Error", "WhatsApp is not installed on this device or could not be opened.")
     );
   };
 
@@ -114,13 +115,7 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
           style={styles.repairStationOption}
           onPress={() => {
             setSelectedRepairStation("in-house");
-            onDataChange({
-              selectedRepairStation: "in-house",
-              selectedInHouseOption,
-              selectedServiceCenterOption,
-              pickupDate,
-              pickupTime,
-            });
+            setSelectedServiceCenterOption(""); // Reset service-center selection
           }}
         >
           <Ionicons
@@ -135,19 +130,11 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
           style={styles.repairStationOption}
           onPress={() => {
             setSelectedRepairStation("service-center");
-            onDataChange({
-              selectedRepairStation: "service-center",
-              selectedInHouseOption,
-              selectedServiceCenterOption,
-              pickupDate,
-              pickupTime,
-            });
+            setSelectedInHouseOption(""); // Reset in-house selection
           }}
         >
           <Ionicons
-            name={
-              selectedRepairStation === "service-center" ? "checkbox" : "square-outline"
-            }
+            name={selectedRepairStation === "service-center" ? "checkbox" : "square-outline"}
             size={24}
             color={selectedRepairStation === "service-center" ? "#2563EB" : "#4B5563"}
           />
@@ -163,6 +150,7 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
             selectedValue={selectedInHouseOption}
             onValueChange={(itemValue) => {
               setSelectedInHouseOption(itemValue);
+              console.log("Selected In-House Option:", itemValue); // Debugging log
               onDataChange({
                 selectedRepairStation,
                 selectedInHouseOption: itemValue,
@@ -177,23 +165,22 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
               <Picker.Item
                 key={provider.id}
                 label={provider.name}
-                value={provider.id}
+                value={provider.name} // Use provider name as the value
               />
             ))}
           </Picker>
-
-        
         </View>
       )}
 
       {selectedRepairStation === "service-center" && (
         <View>
           <View style={styles.dropdownContainer}>
-            <Text style={styles.subHeader}>Select Service Center Option</Text>
+            <Text style={styles.subHeader}>Select Service Center</Text>
             <Picker
               selectedValue={selectedServiceCenterOption}
               onValueChange={(itemValue) => {
                 setSelectedServiceCenterOption(itemValue);
+                console.log("Selected Service Center Option:", itemValue); // Debugging log
                 onDataChange({
                   selectedRepairStation,
                   selectedInHouseOption,
@@ -204,18 +191,17 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
               }}
               style={styles.picker}
             >
-              {/* Dynamically populate the Picker with service center options */}
               {centers.map((center) => (
                 <Picker.Item
                   key={center.id}
                   label={center.name}
-                  value={center.id}
+                  value={center.name} // Use center name as the value
                 />
               ))}
             </Picker>
           </View>
 
-          {/* Pickup Date */}
+          {/* Pickup Date and Time */}
           <View style={styles.datePickerContainer}>
             <Text style={styles.subHeader}>Pickup Date</Text>
             <TouchableOpacity
@@ -237,7 +223,6 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
             )}
           </View>
 
-          {/* Pickup Time */}
           <View style={styles.datePickerContainer}>
             <Text style={styles.subHeader}>Pickup Time</Text>
             <TouchableOpacity
@@ -260,7 +245,17 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
           </View>
 
           {/* Communication Icons */}
-        
+          <View style={styles.iconsContainer}>
+            <TouchableOpacity onPress={handlePhonePress}>
+              <Ionicons name="call-outline" size={24} color="#2563EB" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleMessagePress}>
+              <Ionicons name="chatbubble-outline" size={24} color="#2563EB" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleWhatsAppPress}>
+              <Ionicons name="logo-whatsapp" size={24} color="#25D366" />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>
@@ -273,19 +268,18 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     marginBottom: 10,
-   
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
-    marginTop:10,
+    marginTop: 10,
   },
   header: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
-    color: "#047857"
+    color: "#047857",
   },
   subHeader: {
     fontSize: 14,

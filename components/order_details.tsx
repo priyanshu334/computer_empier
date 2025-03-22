@@ -65,10 +65,10 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ initialData, onDataChange }
         <View style={{ borderWidth: 1, backgroundColor: "#f9f9f9", borderRadius: 5, borderColor: "#ccc" }}>
           <Picker selectedValue={orderStatus} onValueChange={setOrderStatus} style={styles.picker}>
             <Picker.Item label="Pending" value="Pending" />
-            <Picker.Item label="Processing" value="Processing" />
-            <Picker.Item label="Shipped" value="Shipped" />
-            <Picker.Item label="Delivered" value="Delivered" />
             <Picker.Item label="Cancelled" value="Cancelled" />
+            
+            <Picker.Item label="Delivered" value="Delivered" />
+            <Picker.Item label="Repaired" value="Repaired" />
           </Picker>
         </View>
       </View>
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: "500", marginBottom: 8 },
   input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 12, fontSize: 16, backgroundColor: "#f9f9f9" },
   textArea: { height: 48, fontSize: 16, backgroundColor: "#f9f9f9" },
-  picker: { fontSize: 16 },
+  picker: { fontSize: 16 ,},
   addButton: { backgroundColor: "teal", borderRadius: 8, alignItems: "center", padding: 10, marginTop: 16 },
   addButtonText: { fontSize: 16, fontWeight: "bold", color: "white" },
   problemsContainer: { marginBottom: 20 },

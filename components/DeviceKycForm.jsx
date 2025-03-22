@@ -14,7 +14,7 @@ import { AntDesign } from "@expo/vector-icons";
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import DialogComponent from "./lock_code";
-import { useRouter } from "expo-router";
+import { router, useRouter } from "expo-router";
 import CameraComponent from "./camera_compo"; // Ensure this component is properly implemented
 
 const DeviceKYCForm = ({ onSubmit, initialData }) => {
@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#374151",
+    paddingVertical:10,
   },
   accessoryItem: {
     flexDirection: "row",

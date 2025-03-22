@@ -37,6 +37,7 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
   >([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState(initialCustomer || null);
+  const [numberError, setNumberError] = useState(""); // State to store number validation error
 
   useEffect(() => {
     const loadCustomerData = async () => {
@@ -56,8 +57,28 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
     setFilteredCustomers(filtered);
   };
 
+  // Validate the phone number
+  const validateNumber = (number: string) => {
+    if (!number) {
+      return "Phone number is required.";
+    }
+    if (!/^\d+$/.test(number)) {
+      return "Phone number should contain only digits.";
+    }
+    if (number.length !== 10) {
+      return "Phone number must be 10 digits long.";
+    }
+    return ""; // No error
+  };
+
   const handleAddCustomer = () => {
-    if (!customerName || !customerNumber || !customerAddress) {
+    const numberValidationError = validateNumber(customerNumber);
+    if (numberValidationError) {
+      setNumberError(numberValidationError);
+      return;
+    }
+
+    if (!customerName || !customerAddress) {
       Alert.alert("Error", "All fields are required!");
       return;
     }
@@ -77,6 +98,7 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
     setCustomerName("");
     setCustomerNumber("");
     setCustomerAddress("");
+    setNumberError(""); // Clear any previous error
 
     onAdd(newCustomer);
   };
@@ -135,27 +157,46 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 
             <View style={styles.inputContainer}>
               <Text style={styles.subTitle}>Customer Name</Text>
-              <TextInput style={styles.input} placeholder="Enter Name" value={customerName} onChangeText={setCustomerName} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter Name"
+                value={customerName}
+                onChangeText={setCustomerName}
+              />
             </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.subTitle}>Customer Number</Text>
-              <TextInput style={styles.input} placeholder="Enter Number" keyboardType="numeric" value={customerNumber} onChangeText={setCustomerNumber} />
+              <TextInput
+                style={[styles.input, numberError ? styles.inputError : null]}
+                placeholder="Enter Number"
+                keyboardType="numeric"
+                value={customerNumber}
+                onChangeText={(text) => {
+                  setCustomerNumber(text);
+                  setNumberError(""); // Clear error when user types
+                }}
+              />
+              {numberError && <Text style={styles.errorText}>{numberError}</Text>}
             </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.subTitle}>Customer Address</Text>
-              <TextInput style={styles.input} placeholder="Enter Address" value={customerAddress} onChangeText={setCustomerAddress} />
+              <TextInput
+                style={styles.input}
+                placeholder="Enter Address"
+                value={customerAddress}
+                onChangeText={setCustomerAddress}
+              />
             </View>
 
             <View style={styles.modalButtonContainer}>
-            <TouchableOpacity onPress={() => setAddModalVisible(false)} style={styles.cancelButton}>
+              <TouchableOpacity onPress={() => setAddModalVisible(false)} style={styles.cancelButton}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleAddCustomer} style={styles.addButton}>
                 <Text style={styles.buttonText}>Add Customer</Text>
               </TouchableOpacity>
-             
             </View>
           </View>
         </View>
@@ -163,41 +204,38 @@ const CustomerDetails: React.FC<CustomerDetailsProps> = ({
 
       {/* Select Customer Modal */}
       <Modal
-  visible={isSelectModalVisible}
-  transparent
-  animationType="slide"
-  onRequestClose={() => setSelectModalVisible(false)}
->
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalContent}>
-      <Text style={styles.modalTitle}>Select Customer</Text>
+        visible={isSelectModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSelectModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Customer</Text>
 
-      <FlatList
-        data={filteredCustomers}
-        keyExtractor={(item, index) => `${item.name}-${index}`}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => handleSelectCustomer(item)} style={styles.listItem}>
-            <Text style={styles.customerName}>{item.name}</Text>
-            <Text style={styles.customerInfo}>Number: {item.number}</Text>
-            <Text style={styles.customerInfo}>Address: {item.address}</Text>
-          </TouchableOpacity>
-        )}
-        ListEmptyComponent={<Text style={styles.noCustomers}>No customers found.</Text>}
-        style={styles.list}
-      />
+            <FlatList
+              data={filteredCustomers}
+              keyExtractor={(item, index) => `${item.name}-${index}`}
+              renderItem={({ item }) => (
+                <TouchableOpacity onPress={() => handleSelectCustomer(item)} style={styles.listItem}>
+                  <Text style={styles.customerName}>{item.name}</Text>
+                  <Text style={styles.customerInfo}>Number: {item.number}</Text>
+                  <Text style={styles.customerInfo}>Address: {item.address}</Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={<Text style={styles.noCustomers}>No customers found.</Text>}
+              style={styles.list}
+            />
 
-      <TouchableOpacity onPress={() => setSelectModalVisible(false)} style={styles.cancelButton}>
-        <Text style={styles.cancelButtonText}>Close</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>
+            <TouchableOpacity onPress={() => setSelectModalVisible(false)} style={styles.cancelButton}>
+              <Text style={styles.cancelButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
-
-
-
 
 const styles = StyleSheet.create({
   container: {
@@ -211,89 +249,79 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   title: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 10 },
-  
   selectedCustomerContainer: {
     marginBottom: 15,
     padding: 10,
     borderColor: "#ddd",
     borderRadius: 8,
   },
-  
   subTitle: { fontSize: 14, fontWeight: "600", marginBottom: 5 },
   customerBox: { borderWidth: 1, padding: 8, borderRadius: 4, borderColor: "#ccc" },
   customerName: { fontSize: 14, fontWeight: "bold" },
   customerInfo: { fontSize: 14, color: "#555" },
-  
-  input: { 
-    borderWidth: 1, 
-    fontSize: 16, 
-    padding: 12, 
-    borderRadius: 6, 
-    borderColor: "#ccc",    
-    backgroundColor: "#f9f9f9", 
-    marginBottom: 10 
+  input: {
+    borderWidth: 1,
+    fontSize: 16,
+    padding: 12,
+    borderRadius: 6,
+    borderColor: "#ccc",
+    backgroundColor: "#f9f9f9",
+    marginBottom: 10,
   },
-  
+  inputError: {
+    borderColor: "red", // Highlight input field in case of error
+  },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginBottom: 5,
+  },
   inputContainer: { marginBottom: 2 },
-
-  buttonContainer: { 
-    flexDirection: "row", 
-    justifyContent: "space-between", 
-    width: "100%" // Ensures proper spacing between buttons
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
   },
-
   button: {
     flex: 1,
-    maxWidth: "30%", 
-    backgroundColor: "#047857", 
-    alignItems: "center",  
-    justifyContent: "center", 
-    padding: 10, 
-    borderRadius: 5 
+    maxWidth: "30%",
+    backgroundColor: "#047857",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    borderRadius: 5,
   },
-
   buttonText: { color: "white", fontWeight: "bold" },
-
-  modalOverlay: { 
-    flex: 1, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    backgroundColor: "rgba(0,0,0,0.5)" 
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
-
-  modalContent: { 
-    width: "80%", // Reduced from 90% to make it smaller
-    maxHeight: "100%", // Prevents the modal from taking up too much space
-    backgroundColor: "white", 
-    padding: 16, 
-    borderRadius: 8 
+  modalContent: {
+    width: "80%",
+    maxHeight: "100%",
+    backgroundColor: "white",
+    padding: 16,
+    borderRadius: 8,
   },
-
   modalTitle: { fontSize: 18, fontWeight: "bold", color: "#047857", marginBottom: 6 },
-
   modalButtonContainer: { flexDirection: "row", justifyContent: "space-between", width: "100%" },
-
   addButton: { backgroundColor: "#34D399", padding: 10, borderRadius: 5 },
-
   cancelButton: { backgroundColor: "#ccc", padding: 10, borderRadius: 5 },
-
   cancelButtonText: { color: "#333" },
-
   noCustomers: { textAlign: "center", marginVertical: 10 },
-
   listItem: {
-    flexDirection: "column",    
+    flexDirection: "column",
     alignItems: "flex-start",
-    padding: 8, // Increased padding for better spacing
+    padding: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
   },
-
-  list: { 
-    maxHeight: 200, // Prevents the list from making the modal too big
-    width: "100%", 
+  list: {
+    maxHeight: 200,
+    width: "100%",
   },
 });
-
 
 export default CustomerDetails;

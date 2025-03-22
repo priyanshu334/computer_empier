@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { 
-  View, 
-  Text, 
-  ScrollView, 
-  TouchableOpacity, 
-  Linking, 
-  Alert, 
-  StyleSheet 
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
@@ -17,21 +16,14 @@ import OrderDetails from "@/components/order_details";
 import EstimateDetails from "@/components/estimate_details";
 import RepairPartner from "@/components/repair_partner";
 import DeviceKYCForm from "@/components/DeviceKycForm";
-import BottomBar from "@/components/bottom_bar";
 import { router } from "expo-router";
 import useFormDataStorage from "@/hooks/useFormData";
-import { v4 as uuidv4 } from 'uuid';
-import * as Crypto from 'expo-crypto';
-import { useCameraStorage } from "@/hooks/useCameraImagesStorage";
-
-
 
 const Add_orders = () => {
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAgreed, setIsAgreed] = useState(false);
-  const { clearPhotos } = useCameraStorage(); 
   const [selectedCustomer, setSelectedCustomer] = useState<{
     name: string;
     number: string;
@@ -80,7 +72,7 @@ const Add_orders = () => {
     isMouseChecked: boolean;
     isDeviceOnWarranty: boolean;
     warrantyExpiryDate: Date | null;
-    cameraData: any; // Adjust the type if you have a specific type for camera data
+    cameraData: any;
     otherAccessories: string;
     additionalDetailsList: string[];
     lockCode: string;
@@ -95,139 +87,92 @@ const Add_orders = () => {
     additionalDetailsList: [],
     lockCode: "",
   });
-  
- 
-  const handleDeviceKYCDataChange = (data: {
-    isPowerAdapterChecked: boolean;
-    isKeyboardChecked: boolean;
-    isMouseChecked: boolean;
-    isDeviceOnWarranty: boolean;
-    warrantyExpiryDate: Date | null;
-    cameraData: any; // Adjust the type if you have a specific type for camera data
-    otherAccessories: string;
-    additionalDetailsList: string[];
-    lockCode: string;
-  }) => {
-    setDeviceKYCDetails(data);
-  };
-  console.log(deviceKYCDetails);
 
-  
-  // Customer details handlers
-  const handleAddCustomer = (customerDetails: { name: string; number: string; address: string }) => {
-    
-    Alert.alert("Success", "New customer added: " + customerDetails.name);
-  };
+  const { createFormData } = useFormDataStorage();
 
-  const handleSelectCustomer = (customer: { name: string; number: string; address: string } | null) => {
-    if (customer) {
-      setSelectedCustomer(customer);
-      alert("Selected Customer: " + customer.name);
-    } else {
-      setSelectedCustomer(null);
-      alert("No customer selected.");
-    }
-  };
+  // Generate a unique ID that complies with Appwrite's requirements
+  const generateUniqueId = (): string => {
+    const timestamp = Date.now().toString(36); // Convert timestamp to base-36
+    const random = Math.random().toString(36).substring(2, 8); // Random string (6 characters)
+    const id = `${timestamp}-${random}`;
 
-  // Order and Estimate handlers
-  const handleOrderDataChange = (data: {
-    deviceModel: string;
-    orderStatus: string;
-    problems: string[];
-  }) => {
-    setOrderDetails(data);
-  };
+    // Ensure the ID is at most 36 characters long
+    const truncatedId = id.substring(0, 36);
 
-  const handleEstimateDataChange = (data: {
-    repairCost: string;
-    advancePaid: string;
-    pickupDate: Date | null;
-    pickupTime: Date | null;
-  }) => {
-    setEstimateDetails(data);
-  };  const handleRepairPartnerDataChange = (data: {
-    selectedRepairStation: string | null;
-    selectedInHouseOption: string;
-    selectedServiceCenterOption: string;
-    pickupDate: Date | null;
-    pickupTime: Date | null;
-  }) => {
-    setRepairPartnerDetails(data);
-  };
+    // Replace invalid characters (anything not a-z, A-Z, 0-9, or underscore) with underscores
+    const validId = truncatedId.replace(/[^a-zA-Z0-9_]/g, "_");
 
-  const generateUniqueId = async (): Promise<string> => {
-    return await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      Date.now().toString() + Math.random().toString()
-    );
+    // Ensure the ID does not start with a leading underscore
+    return validId.startsWith("_") ? validId.substring(1) : validId;
   };
-
-  const {
-    createFormData,
-  } = useFormDataStorage();
 
   const handleSubmit = async () => {
     console.log("Submitting data...");
-  
+
     // Validate required fields
-    if (!name || !designation || !orderDetails.deviceModel || !estimateDetails.repairCost || !estimateDetails.advancePaid) {
+    if (
+      !name ||
+      !designation ||
+      !orderDetails.deviceModel ||
+      !estimateDetails.repairCost ||
+      !estimateDetails.advancePaid
+    ) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
-  
+
     // Convert pickupDate and pickupTime to strings if they are Date objects
     const formattedEstimateDetails = {
       ...estimateDetails,
-      pickupDate: estimateDetails.pickupDate ? estimateDetails.pickupDate.toISOString() : null,
-      pickupTime: estimateDetails.pickupTime ? estimateDetails.pickupTime.toISOString() : null,
+      pickupDate: estimateDetails.pickupDate
+        ? estimateDetails.pickupDate.toISOString()
+        : null,
+      pickupTime: estimateDetails.pickupTime
+        ? estimateDetails.pickupTime.toISOString()
+        : null,
     };
-  
+
     const formattedRepairPartnerDetails = {
       ...repairPartnerDetails,
-      pickupDate: repairPartnerDetails.pickupDate ? repairPartnerDetails.pickupDate.toISOString() : null,
-      pickupTime: repairPartnerDetails.pickupTime ? repairPartnerDetails.pickupTime.toISOString() : null,
+      pickupDate: repairPartnerDetails.pickupDate
+        ? repairPartnerDetails.pickupDate.toISOString()
+        : null,
+      pickupTime: repairPartnerDetails.pickupTime
+        ? repairPartnerDetails.pickupTime.toISOString()
+        : null,
     };
+
     const formattedDeviceKYCDetails = {
       ...deviceKYCDetails,
       warrantyExpiryDate: deviceKYCDetails.warrantyExpiryDate
         ? deviceKYCDetails.warrantyExpiryDate.toISOString()
         : null,
     };
-    console.log("device kyc data is ",formattedEstimateDetails)
-  
-    // Create new data object
-    const id = await generateUniqueId();
-    try {
 
-    const newData = {
-      id: id, // Unique ID
-      name,
-      designation,
-      selectedCustomer,
-      orderDetails,
-      estimateDetails: formattedEstimateDetails,
-      
-      repairPartnerDetails: formattedRepairPartnerDetails,
-      deviceKYC:formattedDeviceKYCDetails,
-    };
-    console.log("new data is ", newData)
+    // Create new data object
+    const id = generateUniqueId();
+    try {
+      const newData = {
+        id: id, // Unique ID
+        name,
+        designation,
+        selectedCustomer,
+        orderDetails,
+        estimateDetails: formattedEstimateDetails,
+        repairPartnerDetails: formattedRepairPartnerDetails,
+        deviceKYC: formattedDeviceKYCDetails,
+      };
+      console.log("New data is:", newData);
 
       await createFormData(newData);
-      
       Alert.alert("Success", "Order added successfully!");
-     
-     
       resetForm();
-      
       router.push("/");
     } catch (error) {
-      console.error("Error saving form data:", error); // Log error
+      console.error("Error saving form data:", error);
       Alert.alert("Error", "Failed to save the order.");
     }
   };
-
-  
-  
 
   const resetForm = () => {
     setName("");
@@ -262,7 +207,6 @@ const Add_orders = () => {
       additionalDetailsList: [],
       lockCode: "",
     });
-   
     setIsAgreed(false);
   };
 
@@ -277,7 +221,11 @@ const Add_orders = () => {
       </View>
 
       {/* Main Scrollable Content */}
-      <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+      <ScrollView
+        contentContainerStyle={{ padding: 16 }}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled={true}
+      >
         {/* Receiver Details */}
         <ReceiverDetails
           onNameChange={(newName) => setName(newName)}
@@ -287,19 +235,21 @@ const Add_orders = () => {
         {/* Customer Details */}
         <CustomerDetails
           onSearchChange={(newSearchTerm) => setSearchTerm(newSearchTerm)}
-          onAdd={handleAddCustomer}
-          onSelect={handleSelectCustomer}
+          onAdd={(customer) => {
+            Alert.alert("Success", "New customer added: " + customer.name);
+          }}
+          onSelect={setSelectedCustomer}
         />
 
         {/* Order Details */}
-        <OrderDetails onDataChange={handleOrderDataChange} />
+        <OrderDetails onDataChange={setOrderDetails} />
 
         {/* Estimate Details */}
-        <EstimateDetails onDataChange={handleEstimateDataChange} />
+        <EstimateDetails onDataChange={setEstimateDetails} />
 
         {/* Device KYC and Repair Partner */}
-        <DeviceKYCForm onSubmit={handleDeviceKYCDataChange} />
-        <RepairPartner onDataChange={handleRepairPartnerDataChange} />
+        <DeviceKYCForm onSubmit={setDeviceKYCDetails} />
+        <RepairPartner onDataChange={setRepairPartnerDetails} />
       </ScrollView>
 
       {/* Terms and Conditions Checkbox */}
@@ -321,18 +271,14 @@ const Add_orders = () => {
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       )}
-
-      {/* Bottom Bar */}
-     
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1 ,
+    flex: 1,
     backgroundColor: "white",
-  
   },
   header: {
     flexDirection: "row",

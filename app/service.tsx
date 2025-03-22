@@ -19,7 +19,7 @@ const ServicePage = () => {
         onPress={() => router.push("./service_center")}
       >
         <FontAwesome5 name="building" size={24} color="#fff" />
-        <Text style={styles.buttonText}>Go to Service Center</Text>
+        <Text style={styles.buttonText}> Service Center</Text>
       </TouchableOpacity>
 
       {/* Service Provider Button */}
@@ -28,7 +28,7 @@ const ServicePage = () => {
         onPress={() => router.push("./service_providers")}
       >
         <AntDesign name="team" size={24} color="#fff" />
-        <Text style={styles.buttonText}>Go to Service Providers</Text>
+        <Text style={styles.buttonText}>Engineer</Text>
       </TouchableOpacity>
     </View>
   );
