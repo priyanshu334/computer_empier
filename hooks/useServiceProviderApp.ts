@@ -1,83 +1,101 @@
-import { useState, useEffect } from "react";
-import { Client, Databases, ID } from "appwrite";
+import { databases } from "../appwriteConfig";
+import { ID, Models } from "appwrite";
 
-const APPWRITE_PROJECT_ID = "67c98460002cbfb5dc8f"; // Replace with your Appwrite project ID
-const APPWRITE_ENDPOINT = "https://cloud.appwrite.io/v1"; // Replace if using a custom endpoint
-const DATABASE_ID = "67c98754000a680dd1eb"; // Replace with your Appwrite database ID
-const COLLECTION_ID = "67e3a4200005a9309b50";
+const DATABASE_ID = "67c98754000a680dd1eb"; // Your database ID
+const COLLECTION_ID = "67e511ce003cdeda20d1"; // Your collection ID
 
-const client = new Client()
-  .setEndpoint(APPWRITE_ENDPOINT)
-  .setProject(APPWRITE_PROJECT_ID);
-
-const databases = new Databases(client);
-
-interface ServiceProvider {
-  id: string;
+interface ServiceProvider extends Models.Document {
   name: string;
   contact: string;
   description?: string;
 }
 
-export function useServiceProviders() {
-  const [providers, setProviders] = useState<ServiceProvider[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  // Fetch service providers
-  useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
-        setProviders(response.documents.map((doc) => ({
-          id: doc.$id,
-          name: doc.name,
-          contact: doc.contact,
-          description: doc.description,
-        })));
-      } catch (error) {
-        console.error("Error fetching providers:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProviders();
-  }, []);
-
-  // Add or update provider
-  const addOrUpdateProvider = async (provider: ServiceProvider) => {
+export const useServiceProviders = () => {
+  // Create a new service provider
+  const createServiceProvider = async (
+    providerData: Omit<ServiceProvider, '$id'>
+  ): Promise<ServiceProvider> => {
     try {
-      if (provider.id) {
-        // Update existing provider
-        await databases.updateDocument(DATABASE_ID, COLLECTION_ID, provider.id, {
-          name: provider.name,
-          contact: provider.contact,
-          description: provider.description,
-        });
-      } else {
-        // Create new provider
-        const newProvider = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-          name: provider.name,
-          contact: provider.contact,
-          description: provider.description,
-        });
-        provider.id = newProvider.$id;
-      }
-      setProviders((prev) => [...prev.filter((p) => p.id !== provider.id), provider]);
+      const response = await databases.createDocument<ServiceProvider>(
+        DATABASE_ID,
+        COLLECTION_ID,
+        ID.unique(),
+        providerData
+      );
+      console.log("Service provider created:", response);
+      return response;
     } catch (error) {
-      console.error("Error adding/updating provider:", error);
+      console.error("Error creating service provider:", error);
+      throw error;
     }
   };
 
-  // Delete provider
-  const deleteProvider = async (id: string) => {
+  // Get all service providers
+  const getAllServiceProviders = async (): Promise<ServiceProvider[]> => {
+    try {
+      const response = await databases.listDocuments<ServiceProvider>(
+        DATABASE_ID,
+        COLLECTION_ID
+      );
+      return response.documents;
+    } catch (error) {
+      console.error("Error fetching service providers:", error);
+      return [];
+    }
+  };
+
+  // Get a single service provider by ID
+  const getServiceProviderById = async (
+    id: string
+  ): Promise<ServiceProvider | null> => {
+    try {
+      return await databases.getDocument<ServiceProvider>(
+        DATABASE_ID,
+        COLLECTION_ID,
+        id
+      );
+    } catch (error) {
+      console.error(`Error fetching service provider with ID ${id}:`, error);
+      return null;
+    }
+  };
+
+  // Update a service provider
+  const updateServiceProvider = async (
+    id: string,
+    updateData: Partial<Omit<ServiceProvider, '$id'>>
+  ): Promise<ServiceProvider> => {
+    try {
+      const response = await databases.updateDocument<ServiceProvider>(
+        DATABASE_ID,
+        COLLECTION_ID,
+        id,
+        updateData
+      );
+      console.log("Service provider updated:", response);
+      return response;
+    } catch (error) {
+      console.error(`Error updating service provider with ID ${id}:`, error);
+      throw error;
+    }
+  };
+
+  // Delete a service provider
+  const deleteServiceProvider = async (id: string): Promise<void> => {
     try {
       await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id);
-      setProviders((prev) => prev.filter((p) => p.id !== id));
+      console.log(`Service provider with ID ${id} deleted successfully`);
     } catch (error) {
-      console.error("Error deleting provider:", error);
+      console.error(`Error deleting service provider with ID ${id}:`, error);
+      throw error;
     }
   };
 
-  return { providers, addOrUpdateProvider, deleteProvider, loading };
-}
+  return {
+    createServiceProvider,
+    getAllServiceProviders,
+    getServiceProviderById,
+    updateServiceProvider,
+    deleteServiceProvider,
+  };
+};

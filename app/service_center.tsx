@@ -1,118 +1,165 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import { useServiceCenters } from "../hooks/useServiceCenters";
 import { router } from "expo-router";
+import { useServiceCenters } from "../hooks/useServiceCenters";
+import { useServiceCenters as useServiceCentersApp } from "../hooks/useServiceCenterApp";
 
 interface ServiceCenterType {
   id: string;
+  $id?: string;
+  name: string;
+  contact: string;
+  address: string;
+}
+
+interface AppwriteServiceCenterType {
+  $id: string;
   name: string;
   contact: string;
   address: string;
 }
 
 export default function ServiceCenter() {
-  const { centers, addOrUpdateCenter, deleteCenter } = useServiceCenters();
+  const { 
+    centers: localCenters, 
+    addOrUpdateCenter: updateLocalCenter, 
+    deleteCenter: deleteLocalCenter 
+  } = useServiceCenters();
+  
+  const { 
+    createServiceCenter,
+    getAllServiceCenters,
+    updateServiceCenter,
+    deleteServiceCenter,
+  } = useServiceCentersApp();
+
   const [centerName, setCenterName] = useState<string>("");
   const [contactNumber, setContactNumber] = useState<string>("");
   const [address, setAddress] = useState<string>("");
   const [editingCenter, setEditingCenter] = useState<ServiceCenterType | null>(null);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleAddOrEditCenter = () => {
-    if (centerName && contactNumber && address) {
-      const newCenter: ServiceCenterType = {
-        id: editingCenter ? editingCenter.id : Math.random().toString(),
-        name: centerName,
-        contact: contactNumber,
-        address,
-      };
-
-      console.log(editingCenter ? "Updating center:" : "Adding new center:", newCenter);
-      addOrUpdateCenter(newCenter);
-
-      setCenterName("");
-      setContactNumber("");
-      setAddress("");
-      setEditingCenter(null);
-    } else {
-      console.log("Validation failed - missing required fields");
+    if (!centerName || !contactNumber || !address) {
+      Alert.alert("Error", "Please fill all fields");
+      return;
     }
-  };
 
-  const handleEditCenter = (center: ServiceCenterType) => {
-    console.log("Editing center:", center);
-    setCenterName(center.name);
-    setContactNumber(center.contact);
-    setAddress(center.address);
-    setEditingCenter(center);
-  };
+    const centerData: ServiceCenterType = {
+      id: editingCenter?.id || Date.now().toString(),
+      $id: editingCenter?.$id,
+      name: centerName,
+      contact: contactNumber,
+      address
+    };
 
-  const handleUploadToAppwrite = async () => {
-    setIsSyncing(true);
-    console.log("Starting upload of", centers.length, "centers to Appwrite...");
-    
-    try {
-      for (const center of centers) {
-        console.log("Uploading center:", center.name);
-        await addOrUpdateCenter(center);
-      }
-      console.log("Upload completed successfully");
-    } catch (error) {
-      console.error("Upload error:", error);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleDownloadFromAppwrite = async () => {
-    setIsSyncing(true);
-    console.log("Fetching centers from Appwrite...");
-    
-    try {
-      // Simulate network request
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log("Download completed. Retrieved", centers.length, "centers");
-    } catch (error) {
-      console.error("Download error:", error);
-    } finally {
-      setIsSyncing(false);
-    }
+    updateLocalCenter(centerData);
+    resetForm();
   };
 
   const handleDeleteCenter = (center: ServiceCenterType) => {
-    console.log("Deleting center:", center.name);
-    deleteCenter(center.id);
+    Alert.alert(
+      "Confirm Delete",
+      `Delete ${center.name}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          onPress: () => deleteLocalCenter(center.id) 
+        }
+      ]
+    );
+  };
+
+  const resetForm = () => {
+    setCenterName("");
+    setContactNumber("");
+    setAddress("");
+    setEditingCenter(null);
+  };
+
+  const uploadToAppwrite = async () => {
+    setIsLoading(true);
+    try {
+      for (const center of localCenters) {
+        if (center.$id) {
+          await updateServiceCenter(center.$id, {
+            name: center.name,
+            contact: center.contact,
+            address: center.address
+          });
+        } else {
+          const newCenter = await createServiceCenter({
+            name: center.name,
+            contact: center.contact,
+            address: center.address
+          });
+          updateLocalCenter({
+            ...center,
+            $id: newCenter.$id
+          });
+        }
+      }
+      Alert.alert("Success", "All data uploaded to Appwrite");
+    } catch (error) {
+      Alert.alert("Error", "Upload failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const downloadFromAppwrite = async () => {
+    setIsLoading(true);
+    try {
+      const cloudCenters: AppwriteServiceCenterType[] = await getAllServiceCenters();
+      cloudCenters.forEach((center: AppwriteServiceCenterType) => {
+        updateLocalCenter({
+          id: center.$id,
+          $id: center.$id,
+          name: center.name,
+          contact: center.contact,
+          address: center.address
+        });
+      });
+      Alert.alert("Success", "Data downloaded from Appwrite");
+    } catch (error) {
+      Alert.alert("Error", "Download failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-[#F0FDF4]">
-      {/* Header */}
       <View className="flex-row justify-between items-center bg-emerald-900 p-4 border-b-[1px]">
         <TouchableOpacity onPress={() => router.replace("/")}>
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
+        
         <Text className="text-white text-lg font-bold absolute left-0 right-0 text-center">
           Service Centers
         </Text>
+        
         <View className="flex-row">
           <TouchableOpacity 
-            onPress={handleDownloadFromAppwrite} 
+            onPress={downloadFromAppwrite} 
+            disabled={isLoading}
             className="mr-4"
-            disabled={isSyncing}
           >
-            {isSyncing ? (
+            {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <AntDesign name="download" size={24} color="#fff" />
             )}
           </TouchableOpacity>
+          
           <TouchableOpacity 
-            onPress={handleUploadToAppwrite}
-            disabled={isSyncing}
+            onPress={uploadToAppwrite} 
+            disabled={isLoading}
           >
-            {isSyncing ? (
+            {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <AntDesign name="upload" size={24} color="#fff" />
@@ -121,13 +168,11 @@ export default function ServiceCenter() {
         </View>
       </View>
 
-      {/* Service Center Details Section */}
       <View className="p-4 bg-white rounded-md m-4 shadow-md">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
-          {editingCenter ? "Edit Service Center" : "New Service Center"}
+          {editingCenter ? "Edit Service Center" : "Add Service Center"}
         </Text>
 
-        {/* Input Fields */}
         <View className="flex flex-col gap-2">
           <View className="flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
             <AntDesign name="home" size={20} color="gray" />
@@ -171,35 +216,49 @@ export default function ServiceCenter() {
         </TouchableOpacity>
       </View>
 
-      {/* List of Service Centers */}
       <View className="p-4">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
-          List of Service Centers
+          Service Centers ({localCenters.length})
         </Text>
-        <FlatList
-          data={centers}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View className="flex-row items-center justify-between bg-white p-4 rounded-md mb-2 shadow">
-              <View>
-                <Text className="text-gray-800 font-semibold">{item.name}</Text>
-                <Text className="text-gray-500">{item.contact}</Text>
-                <Text className="text-gray-500">{item.address}</Text>
+        
+        {localCenters.length === 0 ? (
+          <Text className="text-gray-500 text-center py-4">
+            No service centers added yet
+          </Text>
+        ) : (
+          <FlatList
+            data={localCenters}
+            keyExtractor={(item: ServiceCenterType) => item.id}
+            renderItem={({ item }: { item: ServiceCenterType }) => (
+              <View className="flex-row items-center justify-between bg-white p-4 rounded-md mb-2 shadow">
+                <View className="flex-1">
+                  <Text className="text-gray-800 font-semibold">{item.name}</Text>
+                  <Text className="text-gray-500">{item.contact}</Text>
+                  <Text className="text-gray-500">{item.address}</Text>
+                  {item.$id && (
+                    <Text className="text-xs text-gray-400">Synced with cloud</Text>
+                  )}
+                </View>
+                <View className="flex-row items-center">
+                  <TouchableOpacity
+                    onPress={() => {
+                      setEditingCenter(item);
+                      setCenterName(item.name);
+                      setContactNumber(item.contact);
+                      setAddress(item.address);
+                    }}
+                    className="mr-4"
+                  >
+                    <AntDesign name="edit" size={24} color="blue" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteCenter(item)}>
+                    <AntDesign name="delete" size={24} color="red" />
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  onPress={() => handleEditCenter(item)}
-                  className="mr-4"
-                >
-                  <AntDesign name="edit" size={24} color="blue" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteCenter(item)}>
-                  <AntDesign name="delete" size={24} color="red" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        />
+            )}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

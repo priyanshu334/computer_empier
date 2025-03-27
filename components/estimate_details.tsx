@@ -6,9 +6,12 @@ import {
   TouchableOpacity,
   Platform,
   StyleSheet,
+  Modal,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+
 
 type EstimateDetailsProps = {
   onDataChange: (data: {
@@ -44,17 +47,19 @@ const EstimateDetails: React.FC<EstimateDetailsProps> = ({ onDataChange, initial
   }, [initialData]);
 
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    const currentDate = selectedDate || pickupDate;
-    setShowDatePicker(Platform.OS === "ios");
-    setPickupDate(currentDate);
-    onDataChange({ repairCost, advancePaid, pickupDate: currentDate, pickupTime });
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setPickupDate(selectedDate);
+      onDataChange({ repairCost, advancePaid, pickupDate: selectedDate, pickupTime });
+    }
   };
 
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    const currentTime = selectedTime || pickupTime;
-    setShowTimePicker(Platform.OS === "ios");
-    setPickupTime(currentTime);
-    onDataChange({ repairCost, advancePaid, pickupDate, pickupTime: currentTime });
+    setShowTimePicker(false);
+    if (selectedTime) {
+      setPickupTime(selectedTime);
+      onDataChange({ repairCost, advancePaid, pickupDate, pickupTime: selectedTime });
+    }
   };
 
   const handleRepairCostChange = (cost: string) => {
@@ -108,12 +113,30 @@ const EstimateDetails: React.FC<EstimateDetailsProps> = ({ onDataChange, initial
           <Ionicons name="calendar-outline" size={24} color="#4B5563" />
         </TouchableOpacity>
         {showDatePicker && (
-          <DateTimePicker
-            value={pickupDate || new Date()}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-          />
+          <>
+            {Platform.OS === "ios" ? (
+              <Modal transparent={true} animationType="slide">
+                <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
+                  <View style={styles.modalOverlay} />
+                </TouchableWithoutFeedback>
+                <View style={styles.modalContent}>
+                  <DateTimePicker
+                    value={pickupDate || new Date()}
+                    mode="date"
+                    display="inline"
+                    onChange={handleDateChange}
+                  />
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={pickupDate || new Date()}
+                mode="date"
+                display="default"
+                onChange={handleDateChange}
+              />
+            )}
+          </>
         )}
       </View>
 
@@ -130,12 +153,30 @@ const EstimateDetails: React.FC<EstimateDetailsProps> = ({ onDataChange, initial
           <Ionicons name="time-outline" size={24} color="#4B5563" />
         </TouchableOpacity>
         {showTimePicker && (
-          <DateTimePicker
-            value={pickupTime || new Date()}
-            mode="time"
-            display="default"
-            onChange={handleTimeChange}
-          />
+          <>
+            {Platform.OS === "ios" ? (
+              <Modal transparent={true} animationType="slide">
+                <TouchableWithoutFeedback onPress={() => setShowTimePicker(false)}>
+                  <View style={styles.modalOverlay} />
+                </TouchableWithoutFeedback>
+                <View style={styles.modalContent}>
+                  <DateTimePicker
+                    value={pickupTime || new Date()}
+                    mode="time"
+                    display="spinner"
+                    onChange={handleTimeChange}
+                  />
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                value={pickupTime || new Date()}
+                mode="time"
+                display="default"
+                onChange={handleTimeChange}
+              />
+            )}
+          </>
         )}
       </View>
     </View>
@@ -152,13 +193,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    marginTop:10,
+    marginTop: 10,
   },
   title: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 16,
-    color: "#047857"
+    color: "#047857",
   },
   inputContainer: {
     marginBottom: 16,
@@ -189,6 +230,16 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 16,
     color: "#333",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 20,
   },
 });
 

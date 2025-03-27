@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useServiceCenters } from "../hooks/useServiceCenters";
 import { useServiceProviders } from "../hooks/useServiceProvider";
 
@@ -36,7 +36,7 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
   const [orderStatus, setOrderStatus] = useState<string | null>(initialFilters.orderStatus);
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialFilters.selectedDate);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>(initialFilters.orderStatus ? initialFilters.orderStatus.split(',') : []);
 
   // State for dialogs
@@ -50,11 +50,11 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
     setIsFilterVisible(!isFilterVisible);
   };
 
-  const showDatePicker = () => setDatePickerVisibility(true);
-  const hideDatePicker = () => setDatePickerVisibility(false);
-  const handleConfirm = (date: Date) => {
-    setSelectedDate(date);
-    hideDatePicker();
+  const handleDateChange = (event: any, date?: Date) => {
+    setShowDatePicker(false);
+    if (date) {
+      setSelectedDate(date);
+    }
   };
 
   const toggleOrderStatus = (status: string) => {
@@ -99,11 +99,10 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
       style={styles.dialogItem}
       onPress={() => {
         if (isServiceCenterDialogVisible) {
-          setServiceCenter(item.value); // Store the name of the service center
+          setServiceCenter(item.value);
         } else if (isServiceProviderDialogVisible) {
-          setServiceProvider(item.value); // Store the name of the service provider
+          setServiceProvider(item.value);
         }
-        // Close the dialog after selection
         setServiceCenterDialogVisible(false);
         setServiceProviderDialogVisible(false);
       }}
@@ -161,12 +160,25 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
             />
 
             {/* Date Picker Button */}
-            <TouchableOpacity style={styles.dateButton} onPress={showDatePicker}>
+            <TouchableOpacity 
+              style={styles.dateButton} 
+              onPress={() => setShowDatePicker(true)}
+            >
               <AntDesign name="calendar" size={20} color="#9CA3AF" />
               <Text style={styles.dateButtonText}>
                 {selectedDate ? selectedDate.toDateString() : "Select Date"}
               </Text>
             </TouchableOpacity>
+
+            {/* Date Picker (Android & Windows) */}
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate || new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleDateChange}
+              />
+            )}
 
             {/* Order Status Buttons */}
             <View style={styles.statusButtonsContainer}>
@@ -193,14 +205,6 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
                 <Text style={styles.applyButtonText}>Apply</Text>
               </TouchableOpacity>
             </View>
-
-            {/* Date Picker Modal */}
-            <DateTimePickerModal
-              isVisible={isDatePickerVisible}
-              mode="date"
-              onConfirm={handleConfirm}
-              onCancel={hideDatePicker}
-            />
           </ScrollView>
         </KeyboardAvoidingView>
       )}
@@ -215,7 +219,7 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
         <View style={styles.dialogContainer}>
           <View style={styles.dialogContent}>
             <FlatList
-              data={centers.map((center) => ({ label: center.name, value: center.name }))} // Use name as value
+              data={centers.map((center) => ({ label: center.name, value: center.name }))}
               renderItem={renderItem}
               keyExtractor={(item) => item.value}
             />
@@ -239,7 +243,7 @@ const FilterSection = ({ onApplyFilters, initialFilters }: FilterSectionProps) =
         <View style={styles.dialogContainer}>
           <View style={styles.dialogContent}>
             <FlatList
-              data={providers.map((provider) => ({ label: provider.name, value: provider.name }))} // Use name as value
+              data={providers.map((provider) => ({ label: provider.name, value: provider.name }))}
               renderItem={renderItem}
               keyExtractor={(item) => item.value}
             />

@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Linking, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  Linking,
+  Alert,
+  Modal,
+  TouchableWithoutFeedback
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { useServiceCenters } from "../hooks/useServiceCenters";
 import { useServiceProviders } from "@/hooks/useServiceProvider";
@@ -27,11 +37,9 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
   const { centers } = useServiceCenters();
   const { providers } = useServiceProviders();
 
-  // Initialize state with proper type assertions
   const [selectedRepairStation, setSelectedRepairStation] = useState<
     "in-house" | "service-center" | null
   >(initialData?.selectedRepairStation || null);
-
   const [selectedInHouseOption, setSelectedInHouseOption] = useState(
     initialData?.selectedInHouseOption || ""
   );
@@ -53,52 +61,36 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
     });
   }, [selectedRepairStation, selectedInHouseOption, selectedServiceCenterOption, pickupDate, pickupTime]);
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || pickupDate;
-    setShowDatePicker(Platform.OS === "ios");
-    setPickupDate(currentDate);
-    onDataChange({
-      selectedRepairStation,
-      selectedInHouseOption,
-      selectedServiceCenterOption,
-      pickupDate: currentDate,
-      pickupTime,
-    });
+  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setPickupDate(selectedDate);
+    }
   };
 
-  const handleTimeChange = (event: any, selectedTime?: Date) => {
-    const currentTime = selectedTime || pickupTime;
-    setShowTimePicker(Platform.OS === "ios");
-    setPickupTime(currentTime);
-    onDataChange({
-      selectedRepairStation,
-      selectedInHouseOption,
-      selectedServiceCenterOption,
-      pickupDate,
-      pickupTime: currentTime,
-    });
+  const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
+    setShowTimePicker(false);
+    if (selectedTime) {
+      setPickupTime(selectedTime);
+    }
   };
 
-  const phoneNumber = selectedServiceCenterOption;
-  const messageText = "Hello! This is a test message.";
-
-  // Handler for phone, message, and WhatsApp actions
   const handlePhonePress = () => {
-    const phoneUrl = `tel:${phoneNumber}`;
+    const phoneUrl = `tel:${selectedServiceCenterOption}`;
     Linking.openURL(phoneUrl).catch(() =>
       Alert.alert("Error", "Phone app could not be opened.")
     );
   };
 
   const handleMessagePress = () => {
-    const messageUrl = `sms:${phoneNumber}?body=${encodeURIComponent(messageText)}`;
+    const messageUrl = `sms:${selectedServiceCenterOption}`;
     Linking.openURL(messageUrl).catch(() =>
       Alert.alert("Error", "Message app could not be opened.")
     );
   };
 
   const handleWhatsAppPress = () => {
-    const whatsappUrl = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(messageText)}`;
+    const whatsappUrl = `whatsapp://send?phone=${selectedServiceCenterOption}`;
     Linking.openURL(whatsappUrl).catch(() =>
       Alert.alert("Error", "WhatsApp is not installed on this device or could not be opened.")
     );
@@ -115,7 +107,7 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
           style={styles.repairStationOption}
           onPress={() => {
             setSelectedRepairStation("in-house");
-            setSelectedServiceCenterOption(""); // Reset service-center selection
+            setSelectedServiceCenterOption("");
           }}
         >
           <Ionicons
@@ -130,7 +122,7 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
           style={styles.repairStationOption}
           onPress={() => {
             setSelectedRepairStation("service-center");
-            setSelectedInHouseOption(""); // Reset in-house selection
+            setSelectedInHouseOption("");
           }}
         >
           <Ionicons
@@ -148,24 +140,14 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
           <Text style={styles.subHeader}>Select Service Provider</Text>
           <Picker
             selectedValue={selectedInHouseOption}
-            onValueChange={(itemValue) => {
-              setSelectedInHouseOption(itemValue);
-              console.log("Selected In-House Option:", itemValue); // Debugging log
-              onDataChange({
-                selectedRepairStation,
-                selectedInHouseOption: itemValue,
-                selectedServiceCenterOption,
-                pickupDate,
-                pickupTime,
-              });
-            }}
+            onValueChange={(itemValue) => setSelectedInHouseOption(itemValue)}
             style={styles.picker}
           >
             {providers.map((provider) => (
               <Picker.Item
                 key={provider.id}
                 label={provider.name}
-                value={provider.name} // Use provider name as the value
+                value={provider.name}
               />
             ))}
           </Picker>
@@ -178,30 +160,20 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
             <Text style={styles.subHeader}>Select Service Center</Text>
             <Picker
               selectedValue={selectedServiceCenterOption}
-              onValueChange={(itemValue) => {
-                setSelectedServiceCenterOption(itemValue);
-                console.log("Selected Service Center Option:", itemValue); // Debugging log
-                onDataChange({
-                  selectedRepairStation,
-                  selectedInHouseOption,
-                  selectedServiceCenterOption: itemValue,
-                  pickupDate,
-                  pickupTime,
-                });
-              }}
+              onValueChange={(itemValue) => setSelectedServiceCenterOption(itemValue)}
               style={styles.picker}
             >
               {centers.map((center) => (
                 <Picker.Item
                   key={center.id}
                   label={center.name}
-                  value={center.name} // Use center name as the value
+                  value={center.name}
                 />
               ))}
             </Picker>
           </View>
 
-          {/* Pickup Date and Time */}
+          {/* Pickup Date */}
           <View style={styles.datePickerContainer}>
             <Text style={styles.subHeader}>Pickup Date</Text>
             <TouchableOpacity
@@ -214,15 +186,34 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
               <Ionicons name="calendar-outline" size={24} color="#4B5563" />
             </TouchableOpacity>
             {showDatePicker && (
-              <DateTimePicker
-                value={pickupDate || new Date()}
-                mode="date"
-                display="default"
-                onChange={handleDateChange}
-              />
+              <>
+                {Platform.OS === "ios" ? (
+                  <Modal transparent={true} animationType="slide">
+                    <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
+                      <View style={styles.modalOverlay} />
+                    </TouchableWithoutFeedback>
+                    <View style={styles.modalContent}>
+                      <DateTimePicker
+                        value={pickupDate || new Date()}
+                        mode="date"
+                        display="inline"
+                        onChange={handleDateChange}
+                      />
+                    </View>
+                  </Modal>
+                ) : (
+                  <DateTimePicker
+                    value={pickupDate || new Date()}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                  />
+                )}
+              </>
             )}
           </View>
 
+          {/* Pickup Time */}
           <View style={styles.datePickerContainer}>
             <Text style={styles.subHeader}>Pickup Time</Text>
             <TouchableOpacity
@@ -230,17 +221,35 @@ const RepairPartner: React.FC<RepairPartnerProps> = ({ onDataChange, initialData
               onPress={() => setShowTimePicker(true)}
             >
               <Text style={styles.datePickerText}>
-                {pickupTime ? pickupTime.toLocaleTimeString() : "Select Time"}
+                {pickupTime ? pickupTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Select Time"}
               </Text>
               <Ionicons name="time-outline" size={24} color="#4B5563" />
             </TouchableOpacity>
             {showTimePicker && (
-              <DateTimePicker
-                value={pickupTime || new Date()}
-                mode="time"
-                display="default"
-                onChange={handleTimeChange}
-              />
+              <>
+                {Platform.OS === "ios" ? (
+                  <Modal transparent={true} animationType="slide">
+                    <TouchableWithoutFeedback onPress={() => setShowTimePicker(false)}>
+                      <View style={styles.modalOverlay} />
+                    </TouchableWithoutFeedback>
+                    <View style={styles.modalContent}>
+                      <DateTimePicker
+                        value={pickupTime || new Date()}
+                        mode="time"
+                        display="spinner"
+                        onChange={handleTimeChange}
+                      />
+                    </View>
+                  </Modal>
+                ) : (
+                  <DateTimePicker
+                    value={pickupTime || new Date()}
+                    mode="time"
+                    display="default"
+                    onChange={handleTimeChange}
+                  />
+                )}
+              </>
             )}
           </View>
 
@@ -331,6 +340,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     marginTop: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 20,
   },
 });
 

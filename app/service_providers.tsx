@@ -1,99 +1,165 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import { useServiceProviders } from "../hooks/useServiceProvider";
 import { router } from "expo-router";
+import { useServiceProviders } from "../hooks/useServiceProvider";
+import { useServiceProviders as useServiceProvidersApp } from "../hooks/useServiceProviderApp";
 
-interface ServiceProvider {
+interface ServiceProviderType {
   id: string;
+  $id?: string;
+  name: string;
+  contact: string;
+  description?: string;
+}
+
+interface AppwriteServiceProviderType {
+  $id: string;
   name: string;
   contact: string;
   description?: string;
 }
 
 export default function ServiceProviders() {
-  const { providers, addOrUpdateProvider, deleteProvider } = useServiceProviders();
+  const { 
+    providers: localProviders, 
+    addOrUpdateProvider: updateLocalProvider, 
+    deleteProvider: deleteLocalProvider 
+  } = useServiceProviders();
+  
+  const { 
+    createServiceProvider,
+    getAllServiceProviders,
+    updateServiceProvider,
+    deleteServiceProvider,
+  } = useServiceProvidersApp();
+
   const [providerName, setProviderName] = useState<string>("");
   const [contactNumber, setContactNumber] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [editingProvider, setEditingProvider] = useState<ServiceProvider | null>(null);
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [editingProvider, setEditingProvider] = useState<ServiceProviderType | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleAddOrEditProvider = () => {
-    if (providerName && contactNumber) {
-      const newProvider: ServiceProvider = {
-        id: editingProvider ? editingProvider.id : Math.random().toString(),
-        name: providerName,
-        contact: contactNumber,
-        description,
-      };
-
-      addOrUpdateProvider(newProvider);
-
-      setProviderName("");
-      setContactNumber("");
-      setDescription("");
-      setEditingProvider(null);
+    if (!providerName || !contactNumber) {
+      Alert.alert("Error", "Please fill all required fields");
+      return;
     }
+
+    const providerData: ServiceProviderType = {
+      id: editingProvider?.id || Date.now().toString(),
+      $id: editingProvider?.$id,
+      name: providerName,
+      contact: contactNumber,
+      description
+    };
+
+    updateLocalProvider(providerData);
+    resetForm();
   };
 
-  const handleEditProvider = (provider: ServiceProvider) => {
-    setProviderName(provider.name);
-    setContactNumber(provider.contact);
-    setDescription(provider.description || "");
-    setEditingProvider(provider);
+  const handleDeleteProvider = (provider: ServiceProviderType) => {
+    Alert.alert(
+      "Confirm Delete",
+      `Delete ${provider.name}?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Delete", 
+          onPress: () => deleteLocalProvider(provider.id) 
+        }
+      ]
+    );
   };
 
-  const handleUploadToAppwrite = async () => {
-    setIsSyncing(true);
+  const resetForm = () => {
+    setProviderName("");
+    setContactNumber("");
+    setDescription("");
+    setEditingProvider(null);
+  };
+
+  const uploadToAppwrite = async () => {
+    setIsLoading(true);
     try {
-      for (const provider of providers) {
-        await addOrUpdateProvider(provider);
+      for (const provider of localProviders) {
+        if (provider.$id) {
+          await updateServiceProvider(provider.$id, {
+            name: provider.name,
+            contact: provider.contact,
+            description: provider.description
+          });
+        } else {
+          const newProvider = await createServiceProvider({
+            name: provider.name,
+            contact: provider.contact,
+            description: provider.description
+          });
+          updateLocalProvider({
+            ...provider,
+            $id: newProvider.$id
+          });
+        }
       }
+      Alert.alert("Success", "All providers uploaded to Appwrite");
     } catch (error) {
-      console.error("Error uploading providers:", error);
+      Alert.alert("Error", "Upload failed");
     } finally {
-      setIsSyncing(false);
+      setIsLoading(false);
     }
   };
 
-  const handleDownloadFromAppwrite = async () => {
-    setIsSyncing(true);
+  const downloadFromAppwrite = async () => {
+    setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const cloudProviders: AppwriteServiceProviderType[] = await getAllServiceProviders();
+      cloudProviders.forEach((provider: AppwriteServiceProviderType) => {
+        updateLocalProvider({
+          id: provider.$id,
+          $id: provider.$id,
+          name: provider.name,
+          contact: provider.contact,
+          description: provider.description
+        });
+      });
+      Alert.alert("Success", "Providers downloaded from Appwrite");
+    } catch (error) {
+      Alert.alert("Error", "Download failed");
     } finally {
-      setIsSyncing(false);
+      setIsLoading(false);
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-[#F0FDF4]">
-      {/* Header with sync buttons */}
       <View className="flex-row justify-between items-center bg-emerald-900 p-4 border-b-[1px]">
         <TouchableOpacity onPress={() => router.replace("/")}>
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
+        
         <Text className="text-white text-lg font-bold absolute left-0 right-0 text-center">
           Service Providers
         </Text>
+        
         <View className="flex-row">
           <TouchableOpacity 
-            onPress={handleDownloadFromAppwrite} 
+            onPress={downloadFromAppwrite} 
+            disabled={isLoading}
             className="mr-4"
-            disabled={isSyncing}
           >
-            {isSyncing ? (
+            {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <AntDesign name="download" size={24} color="#fff" />
             )}
           </TouchableOpacity>
+          
           <TouchableOpacity 
-            onPress={handleUploadToAppwrite}
-            disabled={isSyncing}
+            onPress={uploadToAppwrite} 
+            disabled={isLoading}
           >
-            {isSyncing ? (
+            {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <AntDesign name="upload" size={24} color="#fff" />
@@ -102,10 +168,9 @@ export default function ServiceProviders() {
         </View>
       </View>
 
-      {/* Provider Form Section */}
       <View className="p-4 bg-white rounded-md m-4 shadow-md">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
-          {editingProvider ? "Edit Provider" : "New Provider"}
+          {editingProvider ? "Edit Service Provider" : "Add Service Provider"}
         </Text>
 
         <View className="flex flex-col gap-2">
@@ -133,7 +198,7 @@ export default function ServiceProviders() {
           <View className="flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
             <MaterialIcons name="description" size={20} color="gray" />
             <TextInput
-              placeholder="Description"
+              placeholder="Description (Optional)"
               value={description}
               onChangeText={setDescription}
               className="flex-1 ml-3 text-gray-800"
@@ -151,37 +216,51 @@ export default function ServiceProviders() {
         </TouchableOpacity>
       </View>
 
-      {/* Providers List */}
       <View className="p-4">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
-          Service Providers
+          Service Providers ({localProviders.length})
         </Text>
-        <FlatList
-          data={providers}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View className="flex-row items-center justify-between bg-white p-4 rounded-md mb-2 shadow">
-              <View>
-                <Text className="text-gray-800 font-semibold">{item.name}</Text>
-                <Text className="text-gray-500">{item.contact}</Text>
-                {item.description && (
-                  <Text className="text-gray-500">{item.description}</Text>
-                )}
+        
+        {localProviders.length === 0 ? (
+          <Text className="text-gray-500 text-center py-4">
+            No service providers added yet
+          </Text>
+        ) : (
+          <FlatList
+            data={localProviders}
+            keyExtractor={(item: ServiceProviderType) => item.id}
+            renderItem={({ item }: { item: ServiceProviderType }) => (
+              <View className="flex-row items-center justify-between bg-white p-4 rounded-md mb-2 shadow">
+                <View className="flex-1">
+                  <Text className="text-gray-800 font-semibold">{item.name}</Text>
+                  <Text className="text-gray-500">{item.contact}</Text>
+                  {item.description && (
+                    <Text className="text-gray-500">{item.description}</Text>
+                  )}
+                  {item.$id && (
+                    <Text className="text-xs text-gray-400">Synced with cloud</Text>
+                  )}
+                </View>
+                <View className="flex-row items-center">
+                  <TouchableOpacity
+                    onPress={() => {
+                      setEditingProvider(item);
+                      setProviderName(item.name);
+                      setContactNumber(item.contact);
+                      setDescription(item.description || "");
+                    }}
+                    className="mr-4"
+                  >
+                    <AntDesign name="edit" size={24} color="blue" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteProvider(item)}>
+                    <AntDesign name="delete" size={24} color="red" />
+                  </TouchableOpacity>
+                </View>
               </View>
-              <View className="flex-row items-center">
-                <TouchableOpacity 
-                  onPress={() => handleEditProvider(item)} 
-                  className="mr-4"
-                >
-                  <AntDesign name="edit" size={24} color="blue" />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => deleteProvider(item.id)}>
-                  <AntDesign name="delete" size={24} color="red" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        />
+            )}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
