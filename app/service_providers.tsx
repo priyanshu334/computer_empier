@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
-import { useServiceProviders } from "../hooks/useServiceProvider"; // Import the custom hook
+import { useServiceProviders } from "../hooks/useServiceProvider";
 import { router } from "expo-router";
 
-// Type definition for a service provider
 interface ServiceProvider {
   id: string;
   name: string;
@@ -14,13 +13,13 @@ interface ServiceProvider {
 }
 
 export default function ServiceProviders() {
-  const { providers, addOrUpdateProvider, deleteProvider } = useServiceProviders(); // Use the custom hook
+  const { providers, addOrUpdateProvider, deleteProvider } = useServiceProviders();
   const [providerName, setProviderName] = useState<string>("");
   const [contactNumber, setContactNumber] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [editingProvider, setEditingProvider] = useState<ServiceProvider | null>(null);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  // Add or update a service provider
   const handleAddOrEditProvider = () => {
     if (providerName && contactNumber) {
       const newProvider: ServiceProvider = {
@@ -30,17 +29,15 @@ export default function ServiceProviders() {
         description,
       };
 
-      addOrUpdateProvider(newProvider); // Use the custom hook's method to save the provider
+      addOrUpdateProvider(newProvider);
 
-      // Clear form
       setProviderName("");
       setContactNumber("");
       setDescription("");
-      setEditingProvider(null); // Reset editing state
+      setEditingProvider(null);
     }
   };
 
-  // Edit a service provider
   const handleEditProvider = (provider: ServiceProvider) => {
     setProviderName(provider.name);
     setContactNumber(provider.contact);
@@ -48,27 +45,70 @@ export default function ServiceProviders() {
     setEditingProvider(provider);
   };
 
+  const handleUploadToAppwrite = async () => {
+    setIsSyncing(true);
+    try {
+      for (const provider of providers) {
+        await addOrUpdateProvider(provider);
+      }
+    } catch (error) {
+      console.error("Error uploading providers:", error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleDownloadFromAppwrite = async () => {
+    setIsSyncing(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-[#F0FDF4]">
-      {/* Header */}
-      <View className="flex-row justify-start items-center bg-emerald-900 p-4 border-b-[1px]">
+      {/* Header with sync buttons */}
+      <View className="flex-row justify-between items-center bg-emerald-900 p-4 border-b-[1px]">
         <TouchableOpacity onPress={() => router.replace("/")}>
           <AntDesign name="arrowleft" size={24} color="#fff" />
         </TouchableOpacity>
         <Text className="text-white text-lg font-bold absolute left-0 right-0 text-center">
           Service Providers
         </Text>
+        <View className="flex-row">
+          <TouchableOpacity 
+            onPress={handleDownloadFromAppwrite} 
+            className="mr-4"
+            disabled={isSyncing}
+          >
+            {isSyncing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <AntDesign name="download" size={24} color="#fff" />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={handleUploadToAppwrite}
+            disabled={isSyncing}
+          >
+            {isSyncing ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <AntDesign name="upload" size={24} color="#fff" />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Provider Details Section */}
+      {/* Provider Form Section */}
       <View className="p-4 bg-white rounded-md m-4 shadow-md">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
-          {editingProvider ? "Edit Service Provider" : "New Service Provider"}
+          {editingProvider ? "Edit Provider" : "New Provider"}
         </Text>
 
-        {/* Input Fields */}
         <View className="flex flex-col gap-2">
-          {/* Provider Name */}
           <View className="flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
             <AntDesign name="user" size={20} color="gray" />
             <TextInput
@@ -79,7 +119,6 @@ export default function ServiceProviders() {
             />
           </View>
 
-          {/* Contact Number */}
           <View className="flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
             <AntDesign name="phone" size={20} color="gray" />
             <TextInput
@@ -91,7 +130,6 @@ export default function ServiceProviders() {
             />
           </View>
 
-          {/* Description */}
           <View className="flex-row items-center bg-[#F0FDF4] border border-gray-300 rounded-md px-3 py-2">
             <MaterialIcons name="description" size={20} color="gray" />
             <TextInput
@@ -103,7 +141,6 @@ export default function ServiceProviders() {
           </View>
         </View>
 
-        {/* Add or Save Provider Button */}
         <TouchableOpacity
           onPress={handleAddOrEditProvider}
           className="bg-emerald-700 py-3 rounded-md mt-6"
@@ -114,7 +151,7 @@ export default function ServiceProviders() {
         </TouchableOpacity>
       </View>
 
-      {/* List of Service Providers */}
+      {/* Providers List */}
       <View className="p-4">
         <Text className="text-lg font-semibold text-blue-600 mb-4">
           Service Providers
@@ -132,7 +169,10 @@ export default function ServiceProviders() {
                 )}
               </View>
               <View className="flex-row items-center">
-                <TouchableOpacity onPress={() => handleEditProvider(item)} className="mr-4">
+                <TouchableOpacity 
+                  onPress={() => handleEditProvider(item)} 
+                  className="mr-4"
+                >
                   <AntDesign name="edit" size={24} color="blue" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => deleteProvider(item.id)}>
